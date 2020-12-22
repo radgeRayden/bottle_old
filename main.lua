@@ -17,6 +17,8 @@ local board = {data = {}}
 local player
 local box
 
+local history
+
 local function parse_board (n)
   local board_str = levels[n]
   local bwidth = board_str:find("\n") - 1
@@ -46,9 +48,25 @@ local function parse_board (n)
   board.height = bheight
 end
 
+local function record_state ()
+  table.insert(history, {player = {player[1], player[2]}, box = {box[1], box[2]}})
+end
+
+local function rollback_state ()
+  if #history > 1 then
+    local last = history[#history - 1]
+    box = {last.box[1], last.box[2]}
+    player = {last.player[1], last.player[2]}
+    table.remove(history, #history)
+    print(#history)
+  end
+end
+
 function love.load ()
   parse_board(1)
   game_mode = game_modes.puzzle
+  history = {}
+  record_state()
 end
 
 local function try_move (dx, dy)
@@ -72,6 +90,7 @@ local function try_move (dx, dy)
     player[1] = x
     player[2] = y
   end
+  record_state()
   :: blocked ::
 end
 
@@ -104,18 +123,15 @@ local keys = {
 }
 
 function keys.pressed(key)
-  local mapped = keys.map[key]
-  return keys.current[mapped] and not keys.previous[mapped]
+  return keys.current[key] and not keys.previous[key]
 end
 
 function keys.released(key)
-  local mapped = keys.map[key]
-  return not keys.current[mapped] and keys.previous[mapped]
+  return not keys.current[key] and keys.previous[key]
 end
 
 function keys.down(key)
-  local mapped = keys.map[key]
-  return keys.current[mapped]
+  return keys.current[key]
 end
 
 function love.keypressed(key)
@@ -169,6 +185,9 @@ function game_modes.puzzle (dt)
     try_move(0,-1)
   elseif keys.pressed('down') then
     try_move(0,1)
+  end
+  if keys.pressed('undo') then
+    rollback_state()
   end
 end
 
