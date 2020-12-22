@@ -1,25 +1,27 @@
 -- love prototype to shape the API
 
-local board_str =
+local levels =
+{
 [[
 XXXXXXXXXX
-XOOOOOOOOX
-XOOOOOOOOX
-XOOOOOOOOX
-XOOOOOOOOX
-XOOXXXXOOX
-XOOOOOOOOX
-XOOOOOOOOX
-XOOXGXOOOX
+XGOOBOOOPX
 XXXXXXXXXX
-]]
+]],
+}
 
-local board = {width = 10, height = 10, data = {}}
-local player = {2,2}
-local box = {5,5}
+local current_level = 1
+local game_modes = {}
+local game_mode = function () end
 
-function love.load ()
-  -- parse board
+local board = {data = {}}
+local player
+local box
+
+local function parse_board (n)
+  local board_str = levels[n]
+  local bwidth = board_str:find("\n") - 1
+  local bheight = 0
+  local x,y = 1, 1
   for c in board_str:gmatch(".") do
     if c == "X" then
       table.insert(board.data, false)
@@ -27,14 +29,26 @@ function love.load ()
       table.insert(board.data, true)
     elseif c == "G" then
       table.insert(board.data, "goal")
+    elseif c == "P" then
+      table.insert(board.data, true)
+      player = {x, y}
+    elseif c == "B" then
+      table.insert(board.data, true)
+      box = {x, y}
+    elseif c == "\n" then
+      bheight = bheight + 1
+      x = 0
+      y = y + 1
     end
+    x = x + 1
   end
+  board.width = bwidth
+  board.height = bheight
 end
 
-function love.keypressed(key)
-  if key == 'escape' then
-    love.event.quit()
-  end
+function love.load ()
+  parse_board(1)
+  game_mode = game_modes.puzzle
 end
 
 local function try_move (dx, dy)
@@ -48,7 +62,7 @@ local function try_move (dx, dy)
       box[1] = box[1] + dx
       box[2] = box[2] + dy
       if bproj == "goal" then
-        print("win!")
+        game_mode = game_modes.endlevel
       end
     else
       goto blocked
@@ -61,19 +75,67 @@ local function try_move (dx, dy)
   :: blocked ::
 end
 
+local keys = {
+  previous = {
+    left = false,
+    right = false,
+    up = false,
+    down = false,
+    undo = false,
+    restart = false,
+  },
+  current = {
+    left = false,
+    right = false,
+    up = false,
+    down = false,
+    undo = false,
+    restart = false,
+  },
+  map =
+    {
+      left = 'left',
+      right = 'right',
+      up = 'up',
+      down = 'down',
+      z = 'undo',
+      r = 'restart'
+    }
+}
+
+function keys.pressed(key)
+  local mapped = keys.map[key]
+  return keys.current[mapped] and not keys.previous[mapped]
+end
+
+function keys.released(key)
+  local mapped = keys.map[key]
+  return not keys.current[mapped] and keys.previous[mapped]
+end
+
+function keys.down(key)
+  local mapped = keys.map[key]
+  return keys.current[mapped]
+end
+
+function love.keypressed(key)
+  if not keys.map[key] then return end
+  keys.current[keys.map[key]] = true
+end
+
 function love.keyreleased(key)
-  if key == 'left' then
-    try_move(-1,0)
-  elseif key == 'right' then
-    try_move(1,0)
-  elseif key == 'up' then
-    try_move(0,-1)
-  elseif key == 'down' then
-    try_move(0,1)
+  if key == 'escape' then
+    love.event.quit()
   end
+  if not keys.map[key] then return end
+  keys.current[keys.map[key]] = false
 end
 
 function love.update(dt)
+  game_mode(dt)
+  for k,v in pairs(keys.current) do
+    keys.previous[k] = v
+  end
 end
 
 function love.draw ()
@@ -96,4 +158,19 @@ function love.draw ()
   love.graphics.rectangle('fill', player[1]*20, player[2]*20,18,18)
   love.graphics.setColor(0,0.5,0,1)
   love.graphics.rectangle('fill', box[1]*20, box[2]*20,18,18)
+end
+
+function game_modes.puzzle (dt)
+  if keys.pressed('left') then
+    try_move(-1,0)
+  elseif keys.pressed('right') then
+    try_move(1,0)
+  elseif keys.pressed('up') then
+    try_move(0,-1)
+  elseif keys.pressed('down') then
+    try_move(0,1)
+  end
+end
+
+function game_modes.endlevel (dt)
 end
