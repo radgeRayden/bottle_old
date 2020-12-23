@@ -22,14 +22,13 @@ local current_level = 1
 local game_modes = {}
 local game_mode = function () end
 
-local board = {data = {}}
-local player
-local box
-
+local board
 local history
 
 local function parse_board (n)
+  board = {}
   board.data = {}
+  board.boxes = {}
   local board_str = levels[n]
   local bwidth = board_str:find("\n") - 1
   local bheight = 0
@@ -43,10 +42,10 @@ local function parse_board (n)
       table.insert(board.data, "goal")
     elseif c == "P" then
       table.insert(board.data, true)
-      player = {x, y}
+      board.player = {x, y}
     elseif c == "B" then
       table.insert(board.data, true)
-      box = {x, y}
+      table.insert(board.boxes, {x, y})
     elseif c == "\n" then
       bheight = bheight + 1
       x = 0
@@ -58,15 +57,25 @@ local function parse_board (n)
   board.height = bheight
 end
 
+local function copyv(v)
+  return {v[1], v[2]}
+end
+
 local function record_state ()
-  table.insert(history, {player = {player[1], player[2]}, box = {box[1], box[2]}})
+  local boxes = {}
+  for k,box in ipairs(board.boxes) do
+    table.insert(boxes, copyv(box))
+  end
+  table.insert(history, {player = copyv(board.player), boxes = boxes})
 end
 
 local function rollback_state ()
   if #history > 1 then
     local last = history[#history - 1]
-    box = {last.box[1], last.box[2]}
-    player = {last.player[1], last.player[2]}
+    for i=1,#board.boxes do
+      board.boxes[i] = copyv(last.boxes[i])
+    end
+    board.player = copyv(last.player)
     table.remove(history, #history)
   end
 end
@@ -78,25 +87,27 @@ function love.load ()
   record_state()
 end
 local function try_move (dx, dy)
-  local x,y = player[1] + dx, player[2] + dy
+  local x,y = board.player[1] + dx, board.player[2] + dy
   local idx = (y-1)*board.width+x
   local proj = board.data[idx]
 
-  if x == box[1] and y == box[2] then
-    local bproj = board.data[(box[2]+dy-1)*board.width+box[1]+dx]
-    if bproj then
-      box[1] = box[1] + dx
-      box[2] = box[2] + dy
-      if bproj == "goal" then
-        game_mode = game_modes.endlevel
+  for k,box in ipairs(board.boxes) do
+    if x == box[1] and y == box[2] then
+      local bproj = board.data[(box[2]+dy-1)*board.width+box[1]+dx]
+      if bproj then
+        box[1] = box[1] + dx
+        box[2] = box[2] + dy
+        if bproj == "goal" then
+          game_mode = game_modes.endlevel
+        end
+      else
+        goto blocked
       end
-    else
-      goto blocked
     end
   end
   if proj then
-    player[1] = x
-    player[2] = y
+    board.player[1] = x
+    board.player[2] = y
   end
   record_state()
   :: blocked ::
@@ -178,10 +189,13 @@ function love.draw ()
       end
     end
   end
+  local player = board.player
   love.graphics.setColor(0,0.5,1,1)
   love.graphics.rectangle('fill', player[1]*20, player[2]*20,18,18)
   love.graphics.setColor(0,0.5,0,1)
-  love.graphics.rectangle('fill', box[1]*20, box[2]*20,18,18)
+  for k,box in ipairs(board.boxes) do
+    love.graphics.rectangle('fill', box[1]*20, box[2]*20,18,18)
+  end
 end
 
 function game_modes.puzzle (dt)
@@ -202,5 +216,7 @@ end
 function game_modes.endlevel (dt)
   current_level = current_level + 1
   parse_board(current_level)
+  history = {}
+  record_state()
   game_mode = game_modes.puzzle
 end
