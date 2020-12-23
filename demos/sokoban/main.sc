@@ -1,11 +1,14 @@
 @@ 'on bottle.load
 fn ()
+    print "loaded"
     ;
 
 @@ 'on bottle.update
 fn (dt)
     ;
 
-@@ 'on botle.draw
+@@ 'on bottle.draw
 fn ()
     ;
+
+locals;
