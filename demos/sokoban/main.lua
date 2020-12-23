@@ -7,6 +7,15 @@ XXXXXXXXXX
 XGOOBOOOPX
 XXXXXXXXXX
 ]],
+[[
+XXXXXXXXXXXXX
+XGXOOOOOOOOOX
+XOOOOOOOOOOOX
+XOXOOOXXXXXXX
+XOOOOOOOBOOPX
+XXXOOOXXXXXXX
+XXXXXXXXXXXXX
+]]
 }
 
 local current_level = 1
@@ -20,6 +29,7 @@ local box
 local history
 
 local function parse_board (n)
+  board.data = {}
   local board_str = levels[n]
   local bwidth = board_str:find("\n") - 1
   local bheight = 0
@@ -190,4 +200,7 @@ function game_modes.puzzle (dt)
 end
 
 function game_modes.endlevel (dt)
+  current_level = current_level + 1
+  parse_board(current_level)
+  game_mode = game_modes.puzzle
 end
