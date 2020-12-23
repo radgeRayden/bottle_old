@@ -58,7 +58,6 @@ local function rollback_state ()
     box = {last.box[1], last.box[2]}
     player = {last.player[1], last.player[2]}
     table.remove(history, #history)
-    print(#history)
   end
 end
 
@@ -68,7 +67,6 @@ function love.load ()
   history = {}
   record_state()
 end
-
 local function try_move (dx, dy)
   local x,y = player[1] + dx, player[2] + dy
   local idx = (y-1)*board.width+x
