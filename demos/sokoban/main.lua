@@ -15,6 +15,15 @@ XOXOOOXXXXXXX
 XOOOOOOOBOOPX
 XXXOOOXXXXXXX
 XXXXXXXXXXXXX
+]],
+[[
+XXXXXXXXXXXXX
+XOOOOOGOOOOOX
+XOOOOOBOOOOOX
+XGOOOBPBOOOGX
+XOOOOOBOOOOOX
+XOOOOOGOOOOOX
+XXXXXXXXXXXXX
 ]]
 }
 
@@ -61,6 +70,10 @@ local function copyv(v)
   return {v[1], v[2]}
 end
 
+local function pos2idx (v)
+  return (v[2]-1) * board.width + v[1]
+end
+
 local function record_state ()
   local boxes = {}
   for k,box in ipairs(board.boxes) do
@@ -86,6 +99,17 @@ function love.load ()
   history = {}
   record_state()
 end
+
+local function check_goals ()
+  for k,box in ipairs(board.boxes) do
+    local idx = pos2idx(box)
+    if board.data[idx] ~= "goal" then
+      return false
+    end
+  end
+  return true
+end
+
 local function try_move (dx, dy)
   local x,y = board.player[1] + dx, board.player[2] + dy
   local idx = (y-1)*board.width+x
@@ -97,9 +121,6 @@ local function try_move (dx, dy)
       if bproj then
         box[1] = box[1] + dx
         box[2] = box[2] + dy
-        if bproj == "goal" then
-          game_mode = game_modes.endlevel
-        end
       else
         goto blocked
       end
@@ -108,6 +129,9 @@ local function try_move (dx, dy)
   if proj then
     board.player[1] = x
     board.player[2] = y
+  end
+  if check_goals() then
+    game_mode = game_modes.endlevel
   end
   record_state()
   :: blocked ::
