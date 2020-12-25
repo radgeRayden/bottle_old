@@ -1,0 +1,3 @@
+[submodule "src/radlib"]
+	path = src/radlib
+	url = https://github.com/radgeRayden/radlib
