@@ -4,11 +4,17 @@ let path = (argv @ 2)
 
 using import FunctionChain
 
+let graphics = (import .src.graphics)
+let window = (import .src.window)
+
 vvv bind bottle
 do
     fnchain load
     fnchain update
     fnchain draw
+
+    let graphics = graphics.external
+    let window = window.external
     locals;
 
 let forbidden-symbols = '()
@@ -30,32 +36,18 @@ let game =
 load-library "libglfw.so"
 load-library "./build/libgame.so"
 run-stage;
-let glfw = (import .src.FFI.glfw)
 let gl = (import .src.FFI.glad)
+let glfw = (import .src.FFI.glfw)
 
-glfw.Init;
-glfw.WindowHint glfw.GLFW_RESIZABLE false
-glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_OPENGL_API
-glfw.WindowHint glfw.GLFW_DOUBLEBUFFER true
-glfw.WindowHint glfw.GLFW_OPENGL_FORWARD_COMPAT true
-glfw.WindowHint glfw.GLFW_CONTEXT_VERSION_MAJOR 4
-glfw.WindowHint glfw.GLFW_CONTEXT_VERSION_MINOR 2
-glfw.WindowHint glfw.GLFW_OPENGL_DEBUG_CONTEXT true
-glfw.WindowHint glfw.GLFW_OPENGL_PROFILE glfw.GLFW_OPENGL_CORE_PROFILE
-
-let main-window = (glfw.CreateWindow 1280 720 "untitled" null null)
-glfw.MakeContextCurrent main-window
+window.init;
 
 gl.init;
 gl.Enable gl.GL_FRAMEBUFFER_SRGB
 
 bottle.load;
 
-while (not (glfw.WindowShouldClose main-window))
-    glfw.PollEvents;
+while (not (bottle.window.closed?))
+    bottle.window.poll-events;
     bottle.update 0
     bottle.draw;
-
-    gl.ClearColor 0.017 0.017 0.017 1.0
-    gl.Clear (gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-    glfw.SwapBuffers main-window
+    bottle.graphics.present;
