@@ -36,13 +36,9 @@ let game =
 load-library "libglfw.so"
 load-library "./build/libgame.so"
 run-stage;
-let gl = (import .src.FFI.glad)
-let glfw = (import .src.FFI.glfw)
 
 window.init;
-
-gl.init;
-gl.Enable gl.GL_FRAMEBUFFER_SRGB
+graphics.init;
 
 bottle.load;
 
