@@ -21,15 +21,24 @@ inline closed? ()
 inline poll-events ()
     glfw.PollEvents;
 
+fn size ()
+    local width : i32
+    local height : i32
+    glfw.GetWindowSize main-window &width &height
+    _ (deref width) (deref height)
+
 do
     let main-window
-    let init
+    let
+        init
+        size
 
     vvv bind external
     do
         let
             closed?
             poll-events
+            size
         locals;
 
     locals;

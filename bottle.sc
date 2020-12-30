@@ -45,5 +45,6 @@ bottle.load;
 while (not (bottle.window.closed?))
     bottle.window.poll-events;
     bottle.update 0
+    bottle.graphics.new-frame;
     bottle.draw;
     bottle.graphics.present;
