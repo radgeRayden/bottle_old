@@ -48,8 +48,8 @@ struct BoardState
     boxes      : (Array ivec2)
     player     : ivec2
 
-    inline tile@ (self x y)
-        self.tiles @ (y * self.dimensions.x + x)
+    inline tile@ (self pos)
+        self.tiles @ (pos.y * self.dimensions.x + pos.x)
 
 fn parse-board (n)
     let board-str = (levels @ n)
@@ -86,22 +86,50 @@ fn parse-board (n)
         _ (x + 1) y
     deref board
 
+global current-level : u32 0
 global board : BoardState
 
 @@ 'on bottle.load
 fn ()
-    board = (parse-board 0)
+    board = (parse-board current-level)
     ;
+
+fn try-move (delta)
+    new-pos := board.player + delta
+    let proj = ('tile@ board new-pos)
+    inline free? (t)
+        or
+            t == TileType.Free
+            t == TileType.Goal
+
+    for box in board.boxes
+        if (new-pos == box)
+            let bproj = ('tile@ board (box + delta))
+            if (free? bproj)
+                box += delta
+            else
+                return;
+    if (free? proj)
+        board.player = new-pos
 
 @@ 'on bottle.update
 fn (dt)
+    using bottle.input
+    if (pressed? 'Left)
+        try-move (ivec2 -1 0)
+    elseif (pressed? 'Right)
+        try-move (ivec2 1 0)
+    elseif (pressed? 'Up)
+        try-move (ivec2 0 -1)
+    elseif (pressed? 'Down)
+        try-move (ivec2 0 1)
     ;
 
 @@ 'on bottle.draw
 fn ()
     using import itertools
     for x y in (dim (unpack board.dimensions))
-        let t = ('tile@ board x y)
+        let t = ('tile@ board (ivec2 x y))
         let tcolor =
             switch t
             case TileType.Free

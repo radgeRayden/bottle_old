@@ -6,6 +6,7 @@ using import FunctionChain
 
 let graphics = (import .src.graphics)
 let window = (import .src.window)
+let input = (import .src.input)
 
 vvv bind bottle
 do
@@ -15,6 +16,7 @@ do
 
     let graphics = graphics.external
     let window = window.external
+    let input = input.external
     locals;
 
 let forbidden-symbols = '()
@@ -38,12 +40,15 @@ load-library "./build/libgame.so"
 run-stage;
 
 window.init;
+input.init window.main-window
 graphics.init;
 
 bottle.load;
 
 while (not (bottle.window.closed?))
     window.poll-events;
+    input.update;
+
     bottle.update 0
 
     graphics.new-frame;
