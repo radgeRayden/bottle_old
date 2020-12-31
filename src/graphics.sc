@@ -420,7 +420,6 @@ fn new-frame ()
             math.scale (vec3 1 -1 1)
             math.translate (vec3 -1 -1 0)
             math.ortho wx wy
-            # math.translate (floor -self.position.xy0)
     'clear geometry-batch
 
 fn present ()
