@@ -432,12 +432,12 @@ fn rectangle (mode color position size)
 
 do
     let init
+        new-frame
+        present
 
     vvv bind external
     do
         let
-            new-frame
-            present
             rectangle
         locals;
 

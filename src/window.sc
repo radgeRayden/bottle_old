@@ -32,12 +32,12 @@ do
     let
         init
         size
+        poll-events
 
     vvv bind external
     do
         let
             closed?
-            poll-events
             size
         locals;
 
