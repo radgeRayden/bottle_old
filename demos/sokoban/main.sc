@@ -51,6 +51,27 @@ struct BoardState
     inline tile@ (self pos)
         self.tiles @ (pos.y * self.dimensions.x + pos.x)
 
+struct GameSnapshot
+    player : ivec2
+    boxes : (Array ivec2)
+
+    inline __typecall (cls board-state)
+        local boxes : (Array ivec2)
+        for box in board-state.boxes
+            'append boxes (copy box)
+
+        super-type.__typecall cls
+            player = (copy board-state.player)
+            boxes = (deref boxes)
+
+fn rollback-state (history board)
+    if ((countof history) > 0)
+        let snapshot = ('last history)
+        board.player = (copy snapshot.player)
+        for i box in (enumerate snapshot.boxes)
+            board.boxes @ i = (copy box)
+        'pop history
+
 fn parse-board (n)
     let board-str = (levels @ n)
     # we assume the first line dictates width for the whole board.
@@ -88,6 +109,7 @@ fn parse-board (n)
 
 global current-level : u32 0
 global board : BoardState
+global history : (Array GameSnapshot)
 
 @@ 'on bottle.load
 fn ()
@@ -95,6 +117,10 @@ fn ()
     ;
 
 fn try-move (delta)
+    # we record the state before trying to move, but only append
+    # if succesful in doing so.
+    let snapshot = (GameSnapshot board)
+
     new-pos := board.player + delta
     let proj = ('tile@ board new-pos)
     inline free? (t)
@@ -112,6 +138,9 @@ fn try-move (delta)
     if (free? proj)
         board.player = new-pos
 
+    'append history snapshot
+    ;
+
 fn win-condition? ()
     # check if we solved the level
     for box in board.boxes
@@ -123,6 +152,10 @@ fn win-condition? ()
 @@ 'on bottle.update
 fn (dt)
     using bottle.input
+    # undo
+    if (pressed? 'A)
+        rollback-state history board
+
     if (pressed? 'Left)
         try-move (ivec2 -1 0)
     elseif (pressed? 'Right)
@@ -131,12 +164,14 @@ fn (dt)
         try-move (ivec2 0 -1)
     elseif (pressed? 'Down)
         try-move (ivec2 0 1)
+
     ;
 
     if (win-condition?)
         current-level += 1
         if (current-level < (countof levels))
             board = (parse-board current-level)
+        'clear history
 
 @@ 'on bottle.draw
 fn ()
