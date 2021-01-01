@@ -112,6 +112,14 @@ fn try-move (delta)
     if (free? proj)
         board.player = new-pos
 
+fn win-condition? ()
+    # check if we solved the level
+    for box in board.boxes
+        if (('tile@ board box) != TileType.Goal)
+            return false
+    true
+
+
 @@ 'on bottle.update
 fn (dt)
     using bottle.input
@@ -124,6 +132,11 @@ fn (dt)
     elseif (pressed? 'Down)
         try-move (ivec2 0 1)
     ;
+
+    if (win-condition?)
+        current-level += 1
+        if (current-level < (countof levels))
+            board = (parse-board current-level)
 
 @@ 'on bottle.draw
 fn ()
