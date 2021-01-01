@@ -1,8 +1,6 @@
-using import ..radlib.core-extensions
-using import ..radlib.foreign
-
 # import C functions and sanitize the scope
-define-scope glad
+vvv bind glad
+do
     let header =
         include
             options
@@ -11,8 +9,18 @@ define-scope glad
     using header.extern
     using header.typedef
     using header.define filter "^(GL_|gl[A-Z])"
+    locals;
 
-let gl = (sanitize-scope glad "^gl(?=[A-Z])")
+let gl =
+    fold (scope = glad) for k v in glad
+        let key-name = (k as Symbol as string)
+        let match? start end = ('match? "^gl(?=[A-Z])" key-name)
+        if match?
+            let new-name = (rslice key-name end)
+            'bind scope (Symbol new-name) v
+        else
+            scope
+
 run-stage;
 
 fn init ()
