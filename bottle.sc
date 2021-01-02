@@ -36,7 +36,7 @@ let game =
         scope = (scope .. additional-symbols)
 
 load-library "libglfw.so"
-load-library "./build/libgame.so"
+load-library (module-dir .. "/build/libgame.so")
 run-stage;
 
 window.init;
