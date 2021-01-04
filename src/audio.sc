@@ -53,7 +53,7 @@ fn cleanup ()
 
 # EXTERNAL INTERFACE
 # ================================================================================
-fn sfx (kind params...)
+fn sfx (kind seed...)
     let sfxr = (soloud.Sfxr_create)
     let preset =
         switch kind
@@ -75,7 +75,8 @@ fn sfx (kind params...)
             # TODO:
             # warning? error? to be decided.
             soloud.SFXR_BLIP
-    soloud.Sfxr_loadPreset sfxr preset 1000
+    let seed = seed...
+    soloud.Sfxr_loadPreset sfxr preset (seed or 0)
     soloud.play soloud-instance sfxr
     ;
 

@@ -71,6 +71,9 @@ fn rollback-state (history board)
         for i box in (enumerate snapshot.boxes)
             board.boxes @ i = (copy box)
         'pop history
+        true
+    else
+        false
 
 fn parse-board (n)
     let board-str = (levels @ n)
@@ -152,10 +155,6 @@ fn win-condition? ()
 @@ 'on bottle.update
 fn (dt)
     using bottle.input
-    # undo
-    if (pressed? 'A)
-        rollback-state history board
-
     let moved? =
         if (pressed? 'Left)
             try-move (ivec2 -1 0)
@@ -168,8 +167,14 @@ fn (dt)
         else
             false
 
+    # undo
+    local moved? = moved?
+    if (pressed? 'A)
+        moved? = (rollback-state history board)
+
     if moved?
-        bottle.audio.sfx 'blip
+        let rand = (extern 'rand (function i32))
+        bottle.audio.sfx 'blip (rand)
 
     if (win-condition?)
         current-level += 1
