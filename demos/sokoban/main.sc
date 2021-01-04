@@ -74,8 +74,8 @@ fn rollback-state (history board)
 
 fn parse-board (n)
     let board-str = (levels @ n)
-    # we assume the first line dictates width for the whole board.
 
+    # we assume the first line dictates width for the whole board.
     local board : BoardState
     fold (width = 0) for c in board-str
         if (c == 10:i8)
@@ -134,12 +134,12 @@ fn try-move (delta)
             if (free? bproj)
                 box += delta
             else
-                return;
+                return false
     if (free? proj)
         board.player = new-pos
 
     'append history snapshot
-    ;
+    true
 
 fn win-condition? ()
     # check if we solved the level
@@ -156,16 +156,20 @@ fn (dt)
     if (pressed? 'A)
         rollback-state history board
 
-    if (pressed? 'Left)
-        try-move (ivec2 -1 0)
-    elseif (pressed? 'Right)
-        try-move (ivec2 1 0)
-    elseif (pressed? 'Up)
-        try-move (ivec2 0 -1)
-    elseif (pressed? 'Down)
-        try-move (ivec2 0 1)
+    let moved? =
+        if (pressed? 'Left)
+            try-move (ivec2 -1 0)
+        elseif (pressed? 'Right)
+            try-move (ivec2 1 0)
+        elseif (pressed? 'Up)
+            try-move (ivec2 0 -1)
+        elseif (pressed? 'Down)
+            try-move (ivec2 0 1)
+        else
+            false
 
-    ;
+    if moved?
+        bottle.audio.sfx 'blip
 
     if (win-condition?)
         current-level += 1
@@ -197,7 +201,5 @@ fn ()
     let bcolor = (vec4 0 0.5 0 1)
     for box in board.boxes
         bottle.graphics.rectangle 'fill bcolor ((vec2 box) * 20) (vec2 18)
-        ;
-    ;
 
 locals;

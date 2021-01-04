@@ -7,6 +7,7 @@ using import FunctionChain
 let graphics = (import .src.graphics)
 let window = (import .src.window)
 let input = (import .src.input)
+let audio = (import .src.audio)
 
 vvv bind bottle
 do
@@ -17,6 +18,7 @@ do
     let graphics = graphics.external
     let window = window.external
     let input = input.external
+    let audio = audio.external
     locals;
 
 let forbidden-symbols = '()
@@ -37,11 +39,13 @@ let game =
 
 load-library "libglfw.so"
 load-library (module-dir .. "/build/libgame.so")
+load-library (module-dir .. "/build/libsoloud_x64.so")
 run-stage;
 
 window.init;
 input.init window.main-window
 graphics.init;
+audio.init;
 
 bottle.load;
 
