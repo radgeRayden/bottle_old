@@ -261,7 +261,7 @@ def task_libgame():
         raise UnsupportedPlatform
 
 # runtime_libs = [libgame_dynamic, glfw_dynamic, cimgui_dynamic, physfs_dynamic, soloud_dynamic]
-runtime_libs = [libgame_dynamic]
+runtime_libs = [libgame_dynamic, soloud_dynamic]
 runtime_targets = [f"./build/{os.path.split(lib)[1]}" for lib in runtime_libs]
 def task_runtime():
     def mkcopy(lib):

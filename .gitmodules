@@ -1,3 +1,6 @@
 [submodule "src/radlib"]
 	path = src/radlib
 	url = https://github.com/radgeRayden/radlib
+[submodule "3rd-party/soloud"]
+	path = 3rd-party/soloud
+	url = https://github.com/radgeRayden/soloud
