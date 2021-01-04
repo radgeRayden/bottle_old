@@ -151,7 +151,6 @@ fn win-condition? ()
             return false
     true
 
-
 @@ 'on bottle.update
 fn (dt)
     using bottle.input
@@ -173,8 +172,7 @@ fn (dt)
         moved? = (rollback-state history board)
 
     if moved?
-        let rand = (extern 'rand (function i32))
-        bottle.audio.sfx 'blip (rand)
+        bottle.audio.sfx 'hurt 2044897763
 
     if (win-condition?)
         current-level += 1
