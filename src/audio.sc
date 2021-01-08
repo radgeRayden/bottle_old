@@ -76,7 +76,7 @@ fn sfx (kind seed...)
             # warning? error? to be decided.
             soloud.SFXR_BLIP
     let seed = seed...
-    soloud.Sfxr_loadPreset sfxr preset (seed or 0)
+    soloud.Sfxr_loadPreset sfxr preset ((deref seed) or 0)
     soloud.play soloud-instance sfxr
     ;
 
