@@ -1,0 +1,29 @@
+* Design Goals:
+**
+
+* Tasks:
+** Core modules
++ [ ] IO [0/2]
+  + [ ] string interpolation library
+  + [ ] log library
++ [ ] Graphics [0/4]
+  + [ ] Primitives [0/4]
+    + [ ] Line
+    + [ ] Circle
+    + [ ] Rectangle
+    + [ ] Polygon
+  + [ ] Sprites [0/2]
+    + [ ] Image loading
+      + [ ] Ability to synthesize a buffer
+    + [ ] Auto atlasing
+      + [ ] UV wrapping emulation at shader level
+  + [ ] Fullscreen effects
+  + [ ] Wrapped shaders?
++ [ ] Window [0/0]
++ [ ] Input [0/2]
+  + [ ] Rebindable virtual controller
+  + [ ] Mouse
++ [ ] Sound [0/1]
+  + [ ] miniaudio bindings
++ [ ] Filesystem [0/0]
++ [ ] Time [0/0]
