@@ -1,6 +1,5 @@
 let header =
     include
-        # options "-I./include"
         "GLFW/glfw3.h"
 
 inline filter-scope (scope pattern)
