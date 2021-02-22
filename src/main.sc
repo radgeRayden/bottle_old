@@ -2,7 +2,6 @@ import .runtime
 import .callbacks
 
 let glfw = (import .FFI.glfw)
-let wgpu = (import .FFI.wgpu)
 import .window
 import .graphics
 
