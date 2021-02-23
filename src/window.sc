@@ -3,6 +3,7 @@
 # by the input module.
 
 using import Option
+import .config
 let glfw = (import .FFI.glfw)
 let wgpu = (import .FFI.wgpu)
 
@@ -49,6 +50,15 @@ fn size ()
     glfw.GetWindowSize window &width &height
     _ width height
 
+fn poll-events ()
+    glfw.PollEvents;
+
+fn closed? ()
+    glfw.WindowShouldClose window
+
+fn gl-swap-buffers ()
+    glfw.SwapBuffers window
+
 fn init ()
     glfw.SetErrorCallback
         fn "glfw-raise-error" (code message)
@@ -58,15 +68,34 @@ fn init ()
             assert false
 
     glfw.Init;
-    # flags hardcoded for webgpu at the moment, might change if I add an openGL backend.
-    glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_NO_API
-    glfw.WindowHint glfw.GLFW_RESIZABLE false
+
+    static-match config.GRAPHICS_BACKEND
+    case 'webgpu
+        glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_NO_API
+        glfw.WindowHint glfw.GLFW_RESIZABLE false
+    case 'opengl
+        glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_OPENGL_API
+        glfw.WindowHint glfw.GLFW_DOUBLEBUFFER true
+        glfw.WindowHint glfw.GLFW_OPENGL_FORWARD_COMPAT true
+
+        glfw.WindowHint glfw.GLFW_CONTEXT_VERSION_MAJOR 4
+        glfw.WindowHint glfw.GLFW_CONTEXT_VERSION_MINOR 2
+        glfw.WindowHint glfw.GLFW_OPENGL_DEBUG_CONTEXT true
+        glfw.WindowHint glfw.GLFW_OPENGL_PROFILE glfw.GLFW_OPENGL_CORE_PROFILE
+
+        glfw.WindowHint glfw.GLFW_SAMPLES 4
+    default
+        ;
+
     window = (glfw.CreateWindow 720 480 "bottle" null null)
     if (window == null)
         # TODO: proper error handling
         assert false
 
+    if (config.GRAPHICS_BACKEND == 'opengl)
+        glfw.MakeContextCurrent window
+
 do
-    let window
-    let init create-wgpu-surface size
+    let init create-wgpu-surface size \
+        poll-events closed? gl-swap-buffers
     locals;

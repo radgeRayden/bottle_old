@@ -15,6 +15,7 @@ switch operating-system
 case 'linux
     load-library "libglfw.so"
     load-library (.. module-dir "/../cdeps/wgpu-native/target/release/libwgpu_native.so")
+    load-library (.. module-dir "/../cdeps/glad/libglad.so")
 case 'windows
 default
     error "Unsupported OS."

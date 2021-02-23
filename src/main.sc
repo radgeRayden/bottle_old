@@ -1,7 +1,6 @@
 import .runtime
 import .callbacks
 
-let glfw = (import .FFI.glfw)
 import .window
 import .graphics
 
@@ -12,8 +11,8 @@ fn run ()
     callbacks.config none
     callbacks.load;
 
-    while (not (glfw.WindowShouldClose window.window))
-        glfw.PollEvents;
+    while (not (window.closed?))
+        window.poll-events;
         callbacks.update;
         callbacks.draw;
         graphics.present;
