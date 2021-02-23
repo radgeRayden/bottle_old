@@ -1,5 +1,5 @@
-import .window
-let gl = (import .FFI.glad)
+import ..window
+let gl = (import ..FFI.glad)
 
 fn init ()
     gl.LoadGL;

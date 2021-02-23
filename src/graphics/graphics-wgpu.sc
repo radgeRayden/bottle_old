@@ -1,6 +1,6 @@
 using import struct
-import .window
-let wgpu = (import .FFI.wgpu)
+import ..window
+let wgpu = (import ..FFI.wgpu)
 
 inline &local (T ...)
     &

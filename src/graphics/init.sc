@@ -1,4 +1,4 @@
-import .config
+import ..config
 
 switch config.GRAPHICS_BACKEND
 case 'opengl
