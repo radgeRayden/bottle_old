@@ -16,6 +16,7 @@ case 'linux
     load-library "libglfw.so"
     load-library (.. module-dir "/../cdeps/wgpu-native/target/release/libwgpu_native.so")
     load-library (.. module-dir "/../cdeps/glad/libglad.so")
+    load-library (.. module-dir "/../cdeps/libgame.so")
 case 'windows
 default
     error "Unsupported OS."
