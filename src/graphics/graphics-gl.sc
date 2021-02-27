@@ -5,6 +5,7 @@ using import glm
 
 import ..window
 import ..io
+import ..math
 import ..FFI.glad
 import ..FFI.stbi
 import .common
@@ -162,6 +163,8 @@ do
     using import glsl
     using VertexAttributes
     fn vertex ()
+        uniform transform : mat4
+
         in aposition : vec2 (location = Position)
         in atexcoords : vec2 (location = TextureCoordinates)
         in acolor : vec4 (location = Color)
@@ -169,7 +172,7 @@ do
         out vtexcoords : vec2 (location = TextureCoordinates)
         out vcolor : vec4 (location = Color)
 
-        gl_Position = (vec4 aposition 0 1)
+        gl_Position = transform * (vec4 aposition 0 1)
         vtexcoords = atexcoords
         vcolor = acolor
 
@@ -190,8 +193,20 @@ do
 global sprite-vbo : u32
 global sprite-ibuf : u32
 global default-shader : ShaderProgram
+global transform-loc : i32
 
 fn sprite (sprite position)
+    imply position vec2
+    let size = (vec2 sprite.size)
+
+    local vdata =
+        arrayof Vertex2D
+            typeinit position (vec2 0 1)
+            typeinit (position + size.x0) (vec2 1 1)
+            typeinit (position + size.0y) (vec2 0 0)
+            typeinit (position + size) (vec2 1 0)
+
+    gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
     gl.DrawElements gl.GL_TRIANGLES 6 gl.GL_UNSIGNED_INT null
 
 fn init ()
@@ -209,10 +224,10 @@ fn init ()
     # init our sprite buffer
     local vdata =
         arrayof Vertex2D
-            typeinit (vec2 -0.5 -0.5) (vec2 0 0)
-            typeinit (vec2  0.5 -0.5) (vec2 1 0)
-            typeinit (vec2 -0.5  0.5) (vec2 0 1)
-            typeinit (vec2  0.5  0.5) (vec2 1 1)
+            typeinit (vec2 -0.5 -0.5) (vec2 0 1)
+            typeinit (vec2  0.5 -0.5) (vec2 1 1)
+            typeinit (vec2 -0.5  0.5) (vec2 0 0)
+            typeinit (vec2  0.5  0.5) (vec2 1 0)
     gl.GenBuffers 1 &sprite-vbo
     gl.BindBuffer gl.GL_ARRAY_BUFFER sprite-vbo
     gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
@@ -244,12 +259,21 @@ fn init ()
     default-shader = (ShaderProgram default-vs default-fs)
     gl.UseProgram default-shader
 
+    transform-loc = (gl.GetUniformLocation default-shader "transform")
+
 # NOTE: maybe we don't need this once our drawing is less immediate, then we can have present clear and
 # submit drawing stuff.
 fn begin-frame ()
-    gl.Viewport 0 0 (window.size)
+    let ww wh = (window.size)
+    gl.Viewport 0 0 ww wh
     gl.ClearColor 0.017 0.017 0.017 1.0
     gl.Clear (gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+    local transform =
+        *
+            math.translate (vec3 -1 -1 0)
+            math.ortho ww wh
+    gl.UniformMatrix4fv transform-loc 1 false (&transform as (mutable@ f32))
 
 fn present ()
     window.gl-swap-buffers;
