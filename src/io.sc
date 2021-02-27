@@ -25,8 +25,24 @@ fn load-file (filename)
 fn load-file-string (filename)
     read-full-file filename String
 
+inline log (fmt ...)
+    # convert arguments to make sure we don't print containers, since
+      C varargs are indiscriminate.
+    let ... =
+        va-map
+            inline (v)
+                let T = (typeof v)
+                static-if ((T == String) or (T == string))
+                    v as rawstring
+                else
+                    v
+            ...
+    C.stdio.printf fmt ...
+    ; # discard result
+
 do
     let
         load-file
         load-file-string
+        log
     locals;
