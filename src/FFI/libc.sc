@@ -18,6 +18,8 @@ let stdio =
             long ftell(FILE *stream);
             void rewind(FILE *stream);
 
+            int printf(const char *restrict format, ...);
+
 do
     let stdio =
         ..
