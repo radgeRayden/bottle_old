@@ -14,6 +14,7 @@ fn run ()
     while (not (window.closed?))
         window.poll-events;
         callbacks.update;
+        graphics.begin-frame;
         callbacks.draw;
         graphics.present;
 
