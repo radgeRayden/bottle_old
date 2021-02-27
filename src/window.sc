@@ -4,10 +4,11 @@
 
 using import Option
 import .config
+import .internal-state
 let glfw = (import .FFI.glfw)
 let wgpu = (import .FFI.wgpu)
 
-global window : (mutable@ glfw.window)
+from internal-state let window
 
 # This helper queries internal window handles used by the OS (as opposed to the GLFW window handle).
 # These are used when initializing certain graphics APIs that own the window surface.
