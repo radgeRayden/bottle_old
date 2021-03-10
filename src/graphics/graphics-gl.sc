@@ -29,7 +29,7 @@ typedef+ common.Sprite
         local x : i32
         local y : i32
         local ch : i32
-        let data = (stbi.load filename &x &y &ch 0)
+        let data = (stbi.load filename &x &y &ch 4)
 
         local handle : u32
         gl.GenTextures 1 &handle
