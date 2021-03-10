@@ -206,7 +206,7 @@ fn sprite (sprite position)
             typeinit (position + size.0y) (vec2 0 0)
             typeinit (position + size) (vec2 1 0)
 
-    gl.BindTexture gl.GL_TEXTURE_2D sprite._handle
+    gl.BindTexture gl.GL_TEXTURE_2D (sprite._handle as u32)
     gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
     gl.DrawElements gl.GL_TRIANGLES 6 gl.GL_UNSIGNED_INT null
 
