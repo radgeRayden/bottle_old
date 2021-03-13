@@ -41,7 +41,7 @@ typedef+ common.Sprite
             let levels = ((log2 dimension) + 1)
             levels as i32
 
-        gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_RGBA8 x y
+        gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_SRGB8_ALPHA8 x y
         gl.TexSubImage2D gl.GL_TEXTURE_2D 0 0 0 x y gl.GL_RGBA gl.GL_UNSIGNED_BYTE data
         gl.GenerateMipmap gl.GL_TEXTURE_2D
         gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_S gl.GL_REPEAT
