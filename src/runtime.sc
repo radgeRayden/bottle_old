@@ -9,7 +9,7 @@ case 'linux
 
     load-library (.. module-dir "/../cdeps/libgame.so")
 case 'windows
-    load-library "glfw.dll"
+    load-library "glfw3.dll"
 
     if (config.GRAPHICS_BACKEND == 'webgpu)
         load-library (.. module-dir "/../cdeps/wgpu-native/target/release/libwgpu_native.dll")
