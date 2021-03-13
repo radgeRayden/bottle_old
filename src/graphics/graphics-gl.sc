@@ -195,16 +195,19 @@ global sprite-ibuf : u32
 global default-shader : ShaderProgram
 global transform-loc : i32
 
-fn sprite (sprite position)
+fn sprite (sprite position ...)
     imply position vec2
-    let size = (vec2 sprite.size)
+    let quad = ((imply (va-option quad ...) vec4) or (vec4 0 0 1 1))
+    let scale = ((imply (va-option scale ...) vec2) or (vec2 1 1))
+
+    size := (vec2 sprite.size) * (quad.pq - quad.st) * scale
 
     local vdata =
         arrayof Vertex2D
-            typeinit position (vec2 0 1)
-            typeinit (position + size.x0) (vec2 1 1)
-            typeinit (position + size.0y) (vec2 0 0)
-            typeinit (position + size) (vec2 1 0)
+            typeinit position quad.sq # (vec2 0 1)
+            typeinit (position + size.x0) quad.pq # (vec2 1 1)
+            typeinit (position + size.0y) quad.st # (vec2 0 0)
+            typeinit (position + size) quad.pt # (vec2 1 0)
 
     gl.BindTexture gl.GL_TEXTURE_2D (sprite._handle as u32)
     gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
