@@ -4,6 +4,7 @@ import .callbacks
 import .window
 import .graphics
 import .input
+import .time
 
 fn run ()
     window.init;
@@ -16,7 +17,7 @@ fn run ()
     while (not (window.closed?))
         window.poll-events;
         input.update;
-        callbacks.update;
+        callbacks.update (time.delta-time)
         graphics.begin-frame;
         callbacks.draw;
         graphics.present;
