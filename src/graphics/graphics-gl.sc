@@ -197,8 +197,19 @@ global transform-loc : i32
 
 fn sprite (sprite position ...)
     imply position vec2
-    let quad = ((imply (va-option quad ...) vec4) or (vec4 0 0 1 1))
-    let scale = ((imply (va-option scale ...) vec2) or (vec2 1 1))
+
+    inline select (a b)
+        static-if (not (none? a)) a
+        else b
+
+    let quad = (select (va-option quad ...) (vec4 0 0 1 1))
+    let scale = (select (va-option scale ...) (vec2 1 1))
+    let rotation = (select (va-option rotation ...) 0.0)
+
+    # verify types if not default values
+    imply quad vec4
+    imply scale vec2
+    imply rotation f32
 
     size := (vec2 sprite.size) * (quad.pq - quad.st) * scale
 
