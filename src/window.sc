@@ -51,6 +51,9 @@ fn size ()
     glfw.GetWindowSize window &width &height
     _ width height
 
+fn set-size (width height)
+    glfw.SetWindowSize window width height
+
 fn poll-events ()
     glfw.PollEvents;
 
@@ -97,6 +100,6 @@ fn init ()
         glfw.MakeContextCurrent window
 
 do
-    let init create-wgpu-surface size \
-        poll-events closed? gl-swap-buffers
+    let init create-wgpu-surface size set-size \
+        poll-events closed? gl-swap-buffers 
     locals;
