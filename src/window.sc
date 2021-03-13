@@ -3,12 +3,29 @@
 # by the input module.
 
 using import Option
+using import String
+using import struct
+
 import .config
 import .internal-state
 let glfw = (import .FFI.glfw)
 let wgpu = (import .FFI.wgpu)
 
 from internal-state let window
+
+struct WindowOptions 
+    width       : i32 = 1280
+    height      : i32 = 720
+    x           : i32 = 100
+    y           : i32 = 100
+    title       : String = "game in a bottle"
+    fullscreen? : bool = false
+    visible?    : bool = true
+    maximized?  : bool = false
+    vsync?      : bool = true
+    resizable?  : bool = true
+
+global window-opt : WindowOptions
 
 # This helper queries internal window handles used by the OS (as opposed to the GLFW window handle).
 # These are used when initializing certain graphics APIs that own the window surface.
@@ -45,6 +62,18 @@ fn create-wgpu-surface ()
     default
         error "OS not supported"
 
+fn position ()
+    local x : i32
+    local y : i32
+    glfw.GetWindowPos window &x &y
+    _ x y
+
+fn set-position (x y)
+    glfw.SetWindowPos window x y
+    let x y = (position)
+    window-opt.x = x
+    window-opt.y = y
+
 fn size ()
     local width : i32
     local height : i32
@@ -53,6 +82,27 @@ fn size ()
 
 fn set-size (width height)
     glfw.SetWindowSize window width height
+
+    # look up what's the actual size we end up with
+    let width height = (size)
+    window-opt.width = width
+    window-opt.height = height
+
+fn set-fullscreen (value)
+    let opt = window-opt
+    monitor := (glfw.GetPrimaryMonitor)
+    if (not opt.fullscreen?)
+        let x y = (position); opt.x = x; opt.y = y
+        opt.fullscreen? = true
+        video-mode := (glfw.GetVideoMode monitor)
+        glfw.SetWindowMonitor window monitor 0 0 video-mode.width video-mode.height (glfw.GLFW_DONT_CARE as i32)
+    else
+        opt.fullscreen? = false
+        glfw.SetWindowMonitor window null opt.x opt.y opt.width opt.height (glfw.GLFW_DONT_CARE as i32)
+    ;
+
+fn toggle-fullscreen ()
+    set-fullscreen (not window-opt.fullscreen?)
 
 fn poll-events ()
     glfw.PollEvents;
@@ -91,7 +141,7 @@ fn init ()
     default
         ;
 
-    window = (glfw.CreateWindow 720 480 "bottle" null null)
+    window = (glfw.CreateWindow window-opt.width window-opt.height window-opt.title null null)
     if (window == null)
         # TODO: proper error handling
         assert false
@@ -100,6 +150,17 @@ fn init ()
         glfw.MakeContextCurrent window
 
 do
-    let init create-wgpu-surface size set-size \
-        poll-events closed? gl-swap-buffers 
+    let create-wgpu-surface 
+        gl-swap-buffers 
+
+    let init 
+        poll-events 
+        closed? 
+
+        size 
+        set-size
+        position
+        set-position
+        set-fullscreen
+        toggle-fullscreen
     locals;
