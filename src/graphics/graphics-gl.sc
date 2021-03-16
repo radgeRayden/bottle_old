@@ -196,8 +196,6 @@ global default-shader : ShaderProgram
 global transform-loc : i32
 
 fn sprite (sprite position ...)
-    imply position vec2
-
     inline select (a b)
         static-if (not (none? a)) a
         else b
@@ -206,10 +204,11 @@ fn sprite (sprite position ...)
     let scale = (select (va-option scale ...) (vec2 1 1))
     let rotation = (select (va-option rotation ...) 0.0)
 
-    # verify types if not default values
-    imply quad vec4
-    imply scale vec2
-    imply rotation f32
+    # verify types if not default values, cast if possible for less friction
+    position as:= vec2
+    quad     as:= vec4
+    scale    as:= vec2
+    rotation as:= f32
 
     size := (vec2 sprite.size) * (quad.pq - quad.st) * scale
 
