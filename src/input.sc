@@ -16,11 +16,24 @@ struct InputState plain
     Up : bool
     Down : bool
 
+struct ButtonTimeInfo plain
+    modified : f64    
+    repeat-triggered : f64
+
+struct InputTimestamp plain
+    A : ButtonTimeInfo
+    B : ButtonTimeInfo
+    Left : ButtonTimeInfo
+    Right : ButtonTimeInfo
+    Up : ButtonTimeInfo
+    Down : ButtonTimeInfo
+
 fn key-down? (code)
     (glfw.GetKey window code) as bool
 
 global previous-state : InputState
 global current-state : InputState
+global last-modified : InputTimestamp
 global gamepad : (Option i32)
 
 fn init ()
@@ -80,6 +93,17 @@ fn update ()
             Down =
                 (key-down? glfw.GLFW_KEY_DOWN) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_DPAD_DOWN)
 
+    # if any button has a different state now, we update the timestamp
+    va-map 
+        inline (field)
+            let _key = (keyof field.Type) 
+            let current previous =
+                getattr current-state _key
+                getattr previous-state _key
+            if (current != previous)
+                (getattr last-modified _key) . modified = (glfw.GetTime)
+        InputState.__fields__
+        
 inline down? (button)
     deref (getattr current-state button)
 
@@ -89,6 +113,22 @@ inline pressed? (button)
 inline released? (button)
     (not (getattr current-state button)) and (deref (getattr previous-state button))
 
+inline... holding? (button, delay : real = 1.0, rate : real = 0.25)
+    if (down? button)
+        let t = (glfw.GetTime)
+        let button-info = (getattr last-modified button)
+        delta := t - button-info.modified 
+        repeat-delta := t - button-info.repeat-triggered
+
+        holding? := delta > delay
+        fire-repeat? := holding? and (repeat-delta > rate)
+        if fire-repeat?
+            button-info.repeat-triggered = t
+
+        _ holding? fire-repeat?        
+    else
+        _ false false
+
 do
     let
         init
@@ -96,4 +136,5 @@ do
         down?
         pressed?
         released?
+        holding?
     locals;
