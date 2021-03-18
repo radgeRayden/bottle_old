@@ -101,7 +101,9 @@ fn update ()
                 getattr current-state _key
                 getattr previous-state _key
             if (current != previous)
-                (getattr last-modified _key) . modified = (glfw.GetTime)
+                let button = (getattr last-modified _key)
+                button.modified = (glfw.GetTime)
+                button.repeat-triggered = 0.0
         InputState.__fields__
         
 inline down? (button)
