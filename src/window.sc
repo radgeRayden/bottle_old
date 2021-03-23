@@ -148,6 +148,7 @@ fn init ()
 
     if (config.GRAPHICS_BACKEND == 'opengl)
         glfw.MakeContextCurrent window
+        glfw.SwapInterval 1
 
 do
     let create-wgpu-surface 
