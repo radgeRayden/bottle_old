@@ -2,6 +2,7 @@ using import String
 using import enum
 using import struct
 using import glm
+using import Array
 
 import ..window
 import ..io
@@ -25,11 +26,18 @@ let &local =
 typedef+ common.Sprite
     inline... __typecall (cls)
         super-type.__typecall cls
-    case (cls, filename : String)
+    case (cls, filedata : (Array i8))
         local x : i32
         local y : i32
         local ch : i32
-        let data = (stbi.load filename &x &y &ch 4)
+        let data = 
+            stbi.load_from_memory 
+                (imply filedata pointer) as (@ u8) 
+                (countof filedata) as i32
+                &x
+                &y
+                &ch
+                4
 
         local handle : u32
         gl.GenTextures 1 &handle
@@ -54,6 +62,8 @@ typedef+ common.Sprite
         super-type.__typecall cls
             size = (typeinit x y)
             _handle = handle
+    case (cls, filename : String)
+        this-function cls ('force-unwrap (io.load-file filename))
 
     inline __drop (self)
         gl.DeleteTextures 1 (&local (self._handle as u32))
