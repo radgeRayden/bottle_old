@@ -11,6 +11,8 @@ from internal-state let window
 struct InputState plain
     A : bool
     B : bool
+    X : bool
+    Y : bool
     Left : bool
     Right : bool
     Up : bool
@@ -23,6 +25,8 @@ struct ButtonTimeInfo plain
 struct InputTimestamp plain
     A : ButtonTimeInfo
     B : ButtonTimeInfo
+    X : ButtonTimeInfo
+    Y : ButtonTimeInfo
     Left : ButtonTimeInfo
     Right : ButtonTimeInfo
     Up : ButtonTimeInfo
@@ -84,6 +88,10 @@ fn update ()
                 (key-down? glfw.GLFW_KEY_Z) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_A)
             B =
                 (key-down? glfw.GLFW_KEY_X) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_B)
+            X = 
+                (key-down? glfw.GLFW_KEY_C) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_X)
+            Y = 
+                (key-down? glfw.GLFW_KEY_V) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_Y)
             Left =
                 (key-down? glfw.GLFW_KEY_LEFT) or (button-down? glfw.GLFW_GAMEPAD_BUTTON_DPAD_LEFT)
             Right =
