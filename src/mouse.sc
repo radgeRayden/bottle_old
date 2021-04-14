@@ -1,3 +1,4 @@
+using import glm
 using import struct
 let glfw = (import .FFI.glfw)
 import .internal-state
@@ -72,6 +73,13 @@ inline... holding? (button, delay : real = 1.0, rate : real = 0.25)
     else
         _ false false
 
+fn position ()
+    local xpos : f64
+    local ypos : f64
+    glfw.GetCursorPos window &xpos &ypos
+
+    ivec2 ((floor xpos) as i32) ((floor ypos) as i32)
+
 do
     let
         update
@@ -79,4 +87,5 @@ do
         pressed?
         released?
         holding?
+        position
     locals;
