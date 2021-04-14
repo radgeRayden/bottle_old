@@ -3,6 +3,7 @@ let graphics = (import .src.graphics)
 let input = (import .src.input)
 let window = (import .src.window)
 let io = (import .src.io)
+let mouse = (import .src.mouse)
 
 vvv bind bottle
 do
@@ -11,6 +12,7 @@ do
 
     let graphics
         input
+        mouse
         window
         io
     locals;
