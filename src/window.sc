@@ -77,7 +77,7 @@ fn set-size (width height)
 fn set-fullscreen (value)
     let opt = config.window
     monitor := (glfw.GetPrimaryMonitor)
-    if (not opt.fullscreen?)
+    if value
         let x y = (position); opt.x = x; opt.y = y
         opt.fullscreen? = true
         video-mode := (glfw.GetVideoMode monitor)
@@ -131,6 +131,8 @@ fn init ()
     if (window == null)
         # TODO: proper error handling
         assert false
+
+    set-fullscreen config.window.fullscreen?
 
     if (build-options.GRAPHICS_BACKEND == 'opengl)
         glfw.MakeContextCurrent window
