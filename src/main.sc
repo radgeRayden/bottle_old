@@ -7,12 +7,15 @@ import .input
 import .mouse
 import .time
 
+import .internal-state
+
 fn run ()
+    callbacks.config internal-state.config
+
     window.init;
     graphics.init;
     input.init;
 
-    callbacks.config none
     callbacks.load;
 
     while (not (window.closed?))

@@ -1,6 +1,6 @@
-import ..config
+import ..build-options
 
-switch config.GRAPHICS_BACKEND
+switch build-options.GRAPHICS_BACKEND
 case 'opengl
     require-from module-dir ".graphics-gl"
 case 'webgpu

@@ -6,26 +6,12 @@ using import Option
 using import String
 using import struct
 
-import .config
+import .build-options
 import .internal-state
 let glfw = (import .FFI.glfw)
 let wgpu = (import .FFI.wgpu)
 
-from internal-state let window
-
-struct WindowOptions 
-    width       : i32 = 1280
-    height      : i32 = 720
-    x           : i32 = 100
-    y           : i32 = 100
-    title       : String = "game in a bottle"
-    fullscreen? : bool = false
-    visible?    : bool = true
-    maximized?  : bool = false
-    vsync?      : bool = true
-    resizable?  : bool = true
-
-global window-opt : WindowOptions
+from internal-state let window config
 
 # This helper queries internal window handles used by the OS (as opposed to the GLFW window handle).
 # These are used when initializing certain graphics APIs that own the window surface.
@@ -71,8 +57,8 @@ fn position ()
 fn set-position (x y)
     glfw.SetWindowPos window x y
     let x y = (position)
-    window-opt.x = x
-    window-opt.y = y
+    config.window.x = x
+    config.window.y = y
 
 fn size ()
     local width : i32
@@ -85,11 +71,11 @@ fn set-size (width height)
 
     # look up what's the actual size we end up with
     let width height = (size)
-    window-opt.width = width
-    window-opt.height = height
+    config.window.width = width
+    config.window.height = height
 
 fn set-fullscreen (value)
-    let opt = window-opt
+    let opt = config.window
     monitor := (glfw.GetPrimaryMonitor)
     if (not opt.fullscreen?)
         let x y = (position); opt.x = x; opt.y = y
@@ -102,7 +88,7 @@ fn set-fullscreen (value)
     ;
 
 fn toggle-fullscreen ()
-    set-fullscreen (not window-opt.fullscreen?)
+    set-fullscreen (not config.window.fullscreen?)
 
 fn poll-events ()
     glfw.PollEvents;
@@ -123,7 +109,7 @@ fn init ()
 
     glfw.Init;
 
-    static-match config.GRAPHICS_BACKEND
+    static-match build-options.GRAPHICS_BACKEND
     case 'webgpu
         glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_NO_API
         glfw.WindowHint glfw.GLFW_RESIZABLE false
@@ -141,12 +127,12 @@ fn init ()
     default
         ;
 
-    window = (glfw.CreateWindow window-opt.width window-opt.height window-opt.title null null)
+    window = (glfw.CreateWindow config.window.width config.window.height config.window.title null null)
     if (window == null)
         # TODO: proper error handling
         assert false
 
-    if (config.GRAPHICS_BACKEND == 'opengl)
+    if (build-options.GRAPHICS_BACKEND == 'opengl)
         glfw.MakeContextCurrent window
         glfw.SwapInterval 1
 
