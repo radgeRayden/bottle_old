@@ -26,6 +26,29 @@ let &local =
 typedef+ common.Sprite
     inline... __typecall (cls)
         super-type.__typecall cls
+    case (cls, imagedata : (Array u8), x : i32, y : i32)
+        local handle : u32
+        gl.GenTextures 1 &handle
+        gl.BindTexture gl.GL_TEXTURE_2D handle
+
+        vvv bind mipmap-count
+        do
+            let dimension = (max (x as f32) (y as f32))
+            let levels = ((log2 dimension) + 1)
+            levels as i32
+
+        gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_SRGB8_ALPHA8 x y
+        gl.TexSubImage2D gl.GL_TEXTURE_2D 0 0 0 x y gl.GL_RGBA gl.GL_UNSIGNED_BYTE imagedata
+        gl.GenerateMipmap gl.GL_TEXTURE_2D
+        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_S gl.GL_REPEAT
+        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_T gl.GL_REPEAT
+        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MAG_FILTER gl.GL_NEAREST
+        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MIN_FILTER gl.GL_LINEAR_MIPMAP_LINEAR
+
+        super-type.__typecall cls
+            size = (typeinit x y)
+            _handle = handle
+
     case (cls, filedata : (Array i8))
         local x : i32
         local y : i32
@@ -39,29 +62,14 @@ typedef+ common.Sprite
                 &ch
                 4
 
-        local handle : u32
-        gl.GenTextures 1 &handle
-        gl.BindTexture gl.GL_TEXTURE_2D handle
+        let imagedata = 
+            Struct.__typecall (Array u8)
+                _count = (x * y * 4) # size * channels
+                _capacity = (x * y * 4)
+                _items = data
 
-        vvv bind mipmap-count
-        do
-            let dimension = (max (x as f32) (y as f32))
-            let levels = ((log2 dimension) + 1)
-            levels as i32
+        this-function cls imagedata x y
 
-        gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_SRGB8_ALPHA8 x y
-        gl.TexSubImage2D gl.GL_TEXTURE_2D 0 0 0 x y gl.GL_RGBA gl.GL_UNSIGNED_BYTE data
-        gl.GenerateMipmap gl.GL_TEXTURE_2D
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_S gl.GL_REPEAT
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_T gl.GL_REPEAT
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MAG_FILTER gl.GL_NEAREST
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MIN_FILTER gl.GL_LINEAR_MIPMAP_LINEAR
-
-        free data
-
-        super-type.__typecall cls
-            size = (typeinit x y)
-            _handle = handle
     case (cls, filename : String)
         this-function cls ('force-unwrap (io.load-file filename))
 
