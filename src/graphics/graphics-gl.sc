@@ -295,7 +295,7 @@ fn init ()
 fn begin-frame ()
     let ww wh = (window.size)
     gl.Viewport 0 0 ww wh
-    gl.ClearColor 0.14 0.14 0.14 1.0
+    gl.ClearColor 0.017 0.017 0.017 1.0
     gl.Clear (gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     local transform =
