@@ -166,9 +166,10 @@ typedef ShaderProgram <:: u32
     inline __drop (self)
         gl.DeleteProgram (storagecast (view self))
 
+# note we receive texcoords in pixels, not normalized.
 struct Vertex2D plain
     position  : vec2
-    texcoords : vec2
+    texcoords : ivec2
     color     : vec4
 
 enum VertexAttributes plain
@@ -184,14 +185,14 @@ do
         uniform transform : mat4
 
         in aposition : vec2 (location = Position)
-        in atexcoords : vec2 (location = TextureCoordinates)
+        in atexcoords : ivec2 (location = TextureCoordinates)
         in acolor : vec4 (location = Color)
 
         out vtexcoords : vec2 (location = TextureCoordinates)
         out vcolor : vec4 (location = Color)
 
         gl_Position = transform * (vec4 aposition 0 1)
-        vtexcoords = atexcoords
+        vtexcoords = (vec2 atexcoords)
         vcolor = acolor
 
     fn fragment ()
@@ -201,7 +202,7 @@ do
 
         out fcolor : vec4 (location = 0)
 
-        fcolor = (texture sprite vtexcoords)
+        fcolor = (texelFetch sprite (ivec2 vtexcoords) 0)
 
     _ vertex fragment
 
@@ -214,17 +215,17 @@ global default-shader : ShaderProgram
 global transform-loc : i32
 
 fn sprite (sprite position ...)
-    let quad = (va-option quad ... (vec4 0 0 1 1))
+    let quad = (va-option quad ... (ivec4 0 0 sprite.size))
     let scale = (va-option scale ... (vec2 1 1))
     let rotation = (va-option rotation ... 0.0)
 
     # verify types if not default values, cast if possible for less friction
     position as:= vec2
-    quad     as:= vec4
+    quad     as:= ivec4
     scale    as:= vec2
     rotation as:= f32
 
-    size := (vec2 sprite.size) * (quad.pq - quad.st) * scale
+    size := (vec2 (quad.pq - quad.st)) * scale
 
     local vdata =
         arrayof Vertex2D
@@ -252,10 +253,10 @@ fn init ()
     # init our sprite buffer
     local vdata =
         arrayof Vertex2D
-            typeinit (vec2 -0.5 -0.5) (vec2 0 1)
-            typeinit (vec2  0.5 -0.5) (vec2 1 1)
-            typeinit (vec2 -0.5  0.5) (vec2 0 0)
-            typeinit (vec2  0.5  0.5) (vec2 1 0)
+            typeinit (vec2 -0.5 -0.5) (ivec2 0 1)
+            typeinit (vec2  0.5 -0.5) (ivec2 1 1)
+            typeinit (vec2 -0.5  0.5) (ivec2 0 0)
+            typeinit (vec2  0.5  0.5) (ivec2 1 0)
     gl.GenBuffers 1 &sprite-vbo
     gl.BindBuffer gl.GL_ARRAY_BUFFER sprite-vbo
     gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
