@@ -7,6 +7,7 @@ let mouse = (import .src.mouse)
 
 vvv bind bottle
 do
+    using import .common
     using import .src.callbacks
     let run = main.run
 

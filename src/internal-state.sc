@@ -1,5 +1,6 @@
 using import struct
 using import String
+using import ..common
 
 let glfw = (import .FFI.glfw)
 
@@ -16,6 +17,12 @@ struct BottleConfig
             maximized?  : bool = false
             vsync?      : bool = true
             resizable?  : bool = true
+    graphics :
+        struct GraphicsOptions
+            backend : GraphicsBackend = GraphicsBackend.OpenGL
+    modules :
+        struct EnabledModules
+            graphics : bool = true
 
 global window : (mutable@ glfw.window)
 global config : BottleConfig

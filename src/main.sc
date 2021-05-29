@@ -10,10 +10,16 @@ import .time
 import .internal-state
 
 fn run ()
-    callbacks.config internal-state.config
+    let config = internal-state.config
+
+    callbacks.config config
 
     window.init;
-    graphics.init;
+
+    # currently only the graphics module is optional
+    if config.modules.graphics
+        graphics.init;
+
     input.init;
 
     callbacks.load;
@@ -23,9 +29,14 @@ fn run ()
         input.update;
         mouse.update;
         callbacks.update (time.delta-time)
-        graphics.begin-frame;
+
+        if config.modules.graphics
+            graphics.begin-frame;
+
         callbacks.draw;
-        graphics.present;
+
+        if config.modules.graphics
+            graphics.present;
 
 do
 

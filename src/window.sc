@@ -6,7 +6,7 @@ using import Option
 using import String
 using import struct
 
-import .build-options
+using import ..common
 import .internal-state
 let glfw = (import .FFI.glfw)
 let wgpu = (import .FFI.wgpu)
@@ -109,11 +109,11 @@ fn init ()
 
     glfw.Init;
 
-    static-match build-options.GRAPHICS_BACKEND
-    case 'webgpu
+    switch config.graphics.backend
+    case GraphicsBackend.WebGPU
         glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_NO_API
         glfw.WindowHint glfw.GLFW_RESIZABLE false
-    case 'opengl
+    case GraphicsBackend.OpenGL
         glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_OPENGL_API
         glfw.WindowHint glfw.GLFW_DOUBLEBUFFER true
         glfw.WindowHint glfw.GLFW_OPENGL_FORWARD_COMPAT true
@@ -134,7 +134,7 @@ fn init ()
 
     set-fullscreen config.window.fullscreen?
 
-    if (build-options.GRAPHICS_BACKEND == 'opengl)
+    if (config.graphics.backend == GraphicsBackend.OpenGL)
         glfw.MakeContextCurrent window
         glfw.SwapInterval 1
 
