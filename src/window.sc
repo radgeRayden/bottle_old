@@ -141,6 +141,7 @@ fn init ()
 do
     let create-wgpu-surface 
         gl-swap-buffers 
+        get-native-window-info
 
     let init 
         poll-events 
