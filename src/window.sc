@@ -109,10 +109,11 @@ fn init ()
 
     glfw.Init;
 
+    glfw.WindowHint glfw.GLFW_RESIZABLE config.window.resizable?
+
     switch config.graphics.backend
     case GraphicsBackend.WebGPU
         glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_NO_API
-        glfw.WindowHint glfw.GLFW_RESIZABLE false
     case GraphicsBackend.OpenGL
         glfw.WindowHint glfw.GLFW_CLIENT_API glfw.GLFW_OPENGL_API
         glfw.WindowHint glfw.GLFW_DOUBLEBUFFER true
