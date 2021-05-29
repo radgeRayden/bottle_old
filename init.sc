@@ -9,6 +9,7 @@ vvv bind bottle
 do
     using import .common
     using import .src.callbacks
+    let GraphicsBackend
     let run = main.run
 
     let graphics
