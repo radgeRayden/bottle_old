@@ -38,6 +38,8 @@ fn run ()
         if config.modules.graphics
             graphics.present;
 
+    callbacks.quit;
+
 do
 
     let run
