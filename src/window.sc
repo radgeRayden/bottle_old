@@ -74,6 +74,10 @@ fn set-size (width height)
     config.window.width = width
     config.window.height = height
 
+fn set-resizable (value)
+    glfw.SetWindowAttrib window glfw.GLFW_RESIZABLE value
+    ;
+
 fn set-fullscreen (value)
     let opt = config.window
     monitor := (glfw.GetPrimaryMonitor)
@@ -152,6 +156,7 @@ do
         set-size
         position
         set-position
+        set-resizable
         set-fullscreen
         toggle-fullscreen
     locals;
