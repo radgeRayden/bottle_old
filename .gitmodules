@@ -1,6 +1,6 @@
-[submodule "cdeps/wgpu-native"]
-	path = cdeps/wgpu-native
-	url = https://github.com/gfx-rs/wgpu-native
 [submodule "cdeps/stb"]
 	path = cdeps/stb
 	url = https://github.com/nothings/stb/
+[submodule "cdeps/cute_headers"]
+	path = cdeps/cute_headers
+	url = https://github.com/RandyGaul/cute_headers
