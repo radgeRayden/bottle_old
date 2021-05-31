@@ -143,6 +143,13 @@ fn init ()
         glfw.MakeContextCurrent window
         glfw.SwapInterval 1
 
+    # set universal shortcuts
+    glfw.SetKeyCallback window
+        fn (window key scancode action mods)
+            # alt+enter
+            if (((mods & glfw.GLFW_MOD_ALT) != 0) and (key == glfw.GLFW_KEY_ENTER) and (action == glfw.GLFW_PRESS))
+                toggle-fullscreen; 
+
 do
     let create-wgpu-surface 
         gl-swap-buffers 
