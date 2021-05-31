@@ -94,6 +94,9 @@ fn set-fullscreen (value)
 fn toggle-fullscreen ()
     set-fullscreen (not config.window.fullscreen?)
 
+fn set-title (title)
+    glfw.SetWindowTitle window title
+
 fn poll-events ()
     glfw.PollEvents;
 
@@ -166,4 +169,5 @@ do
         set-resizable
         set-fullscreen
         toggle-fullscreen
+        set-title
     locals;
