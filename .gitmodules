@@ -4,3 +4,6 @@
 [submodule "cdeps/cute_headers"]
 	path = cdeps/cute_headers
 	url = https://github.com/RandyGaul/cute_headers
+[submodule "cdeps/glfw"]
+	path = cdeps/glfw
+	url = https://github.com/glfw/glfw
