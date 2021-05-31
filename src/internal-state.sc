@@ -24,9 +24,23 @@ struct BottleConfig plain
         struct EnabledModules plain
             graphics : bool = true
 
+# because we want to decide certain things at "compile time", we will detect the presence of a 
+  config file in the working directory. This file is supposed to return a function that takes a config struct
+  and modifies it.
+let config-fn = 
+    try 
+        (require-from "." ".config")
+    else
+        spice-quote
+            fn (c)
+                ;
+run-stage;
+local startup-config : BottleConfig
+config-fn startup-config
+
 global window : (mutable@ glfw.window)
 global config : BottleConfig
 
 do
-    let window config
+    let window config startup-config 
     locals;
