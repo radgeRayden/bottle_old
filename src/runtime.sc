@@ -2,10 +2,10 @@ import .build-options
 
 switch operating-system
 case 'linux
-    load-library "libglfw.so"
-    load-library (.. module-dir "/../cdeps/libgame.so")
+    load-library (.. module-dir "/../runtime/libbottle.so")
+    load-library (.. module-dir "/../runtime/libglfw.so")
 case 'windows
-    load-library "glfw3.dll"
-    load-library (.. module-dir "/../cdeps/libbottle.dll")
+    load-library (.. module-dir "/../runtime/libbottle.dll")
+    load-library (.. module-dir "/../runtime/glfw3.dll")
 default
     error "Unsupported OS."
