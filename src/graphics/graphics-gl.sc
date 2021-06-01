@@ -129,11 +129,16 @@ do
     using import glsl
     using VertexAttributes
     fn vertex ()
+        buffer attributes :
+            struct AttributeArray plain
+                data : (array Vertex2D)
+            location = 0
         uniform transform : mat4
 
-        in aposition : vec2 (location = Position)
-        in atexcoords : ivec2 (location = TextureCoordinates)
-        in acolor : vec4 (location = Color)
+        attr := attributes.data @ gl_VertexID
+        aposition := attr.position 
+        atexcoords := attr.texcoords
+        acolor := attr.color
 
         out vtexcoords : vec2 (location = TextureCoordinates)
         out vcolor : vec4 (location = Color)
@@ -153,15 +158,10 @@ do
 
     _ vertex fragment
 
-# TODO:  lot of this will be refactored out. As I improve the sprite and graphics primitives functionality,
-# a more advanced, self resizing vertex buffer will be used in the form of an SSBO. For now a dumb handle
-# will do.
-global sprite-vbo : u32
-global sprite-ibuf : u32
 global default-shader : ShaderProgram
 global transform-loc : i32
-
 global batch : spritebatch.spritebatch
+global batch-mesh : (common.Mesh Vertex2D u32)
 
 fn sprite (sprite position ...)
     let quad = (va-option quad ... (ivec4 0 0 sprite.size))
@@ -187,6 +187,7 @@ fn sprite (sprite position ...)
             s = (sin rotation)
 
 fn make-texture (pixels w h userdata)
+    print w h
     local handle : u32
     gl.GenTextures 1 &handle
     gl.BindTexture gl.GL_TEXTURE_2D handle
@@ -221,6 +222,8 @@ fn get-sprite-pixels (id buf expected-bytes userdata)
 fn batch-submit (sprites count texturew textureh userdata)
     texturew as:= f32
     textureh as:= f32
+
+    'clear batch-mesh
     for i in (range count)
         sprite := sprites @ i
         let quad =
@@ -240,9 +243,18 @@ fn batch-submit (sprites count texturew textureh userdata)
                 typeinit (position + size.0y) quad.st # (vec2 0 0)
                 typeinit (position + size) quad.pt # (vec2 1 0)
 
-        gl.BindTexture gl.GL_TEXTURE_2D (sprite.texture_id as u32)
-        gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
-        gl.DrawElements gl.GL_TRIANGLES 6 gl.GL_UNSIGNED_INT null
+        local indices =
+            arrayof u32 0 1 2 2 1 3
+
+        idx-offset := (countof batch-mesh.attribute-data)
+        for v in vdata
+            'append batch-mesh.attribute-data v
+        for idx in indices
+            'append batch-mesh.index-data ((idx-offset + idx) as u32)
+
+    'update batch-mesh
+    gl.BindTexture gl.GL_TEXTURE_2D (((sprites @ 0) . texture_id) as u32)
+    'draw batch-mesh
 
 fn init ()
     gl.LoadGL;
@@ -256,40 +268,7 @@ fn init ()
     gl.GenVertexArrays 1 &VAO
     gl.BindVertexArray VAO
 
-    # init our sprite buffer
-    local vdata =
-        arrayof Vertex2D
-            typeinit (vec2 -0.5 -0.5) (ivec2 0 1)
-            typeinit (vec2  0.5 -0.5) (ivec2 1 1)
-            typeinit (vec2 -0.5  0.5) (ivec2 0 0)
-            typeinit (vec2  0.5  0.5) (ivec2 1 0)
-    gl.GenBuffers 1 &sprite-vbo
-    gl.BindBuffer gl.GL_ARRAY_BUFFER sprite-vbo
-    gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
-
-    gl.EnableVertexAttribArray VertexAttributes.Position
-    gl.EnableVertexAttribArray VertexAttributes.TextureCoordinates
-    gl.EnableVertexAttribArray VertexAttributes.Color
-
-    inline attribptr (name)
-        inttoptr (offsetof Vertex2D name) voidstar
-
-    gl.VertexAttribPointer
-        \ VertexAttributes.Position 2 gl.GL_FLOAT false (sizeof Vertex2D) (attribptr 'position)
-    gl.VertexAttribPointer
-        \ VertexAttributes.TextureCoordinates 2 gl.GL_FLOAT false (sizeof Vertex2D) (attribptr 'texcoords)
-    gl.VertexAttribPointer
-        \ VertexAttributes.Color 4 gl.GL_FLOAT false (sizeof Vertex2D) (attribptr 'color)
-
-    # 2 -- 3
-    # | /  |
-    # 0 -- 1
-    local sprite-indices =
-        arrayof u32 0 1 2 2 1 3
-
-    gl.GenBuffers 1 &sprite-ibuf
-    gl.BindBuffer gl.GL_ELEMENT_ARRAY_BUFFER sprite-ibuf
-    gl.BufferData gl.GL_ELEMENT_ARRAY_BUFFER (sizeof sprite-indices) &sprite-indices gl.GL_STATIC_DRAW
+    batch-mesh = (typeinit 4096)
 
     default-shader = (ShaderProgram default-vs default-fs)
     gl.UseProgram default-shader
@@ -330,7 +309,7 @@ fn begin-frame ()
 
 fn present ()
     spritebatch.tick &batch
-    # spritebatch.defrag &batch
+    spritebatch.defrag &batch
     spritebatch.flush &batch
     window.gl-swap-buffers;
 
