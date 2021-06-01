@@ -8,11 +8,11 @@ import ..window
 import ..io
 import ..math
 import ..FFI.glad
-import ..FFI.stbi
+import ..FFI.cute-spritebatch
 import .common
 
 let gl = FFI.glad
-let stbi = FFI.stbi
+let spritebatch = FFI.cute-spritebatch
 
 let &local =
     inline... (T : type, ...)
@@ -22,59 +22,6 @@ let &local =
     case (source)
         &
             local dummy-name = source
-
-typedef+ common.Sprite
-    inline... __typecall (cls)
-        super-type.__typecall cls
-    case (cls, imagedata : (Array u8), x : i32, y : i32)
-        local handle : u32
-        gl.GenTextures 1 &handle
-        gl.BindTexture gl.GL_TEXTURE_2D handle
-
-        vvv bind mipmap-count
-        do
-            let dimension = (max (x as f32) (y as f32))
-            let levels = ((log2 dimension) + 1)
-            levels as i32
-
-        gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_SRGB8_ALPHA8 x y
-        gl.TexSubImage2D gl.GL_TEXTURE_2D 0 0 0 x y gl.GL_RGBA gl.GL_UNSIGNED_BYTE imagedata
-        gl.GenerateMipmap gl.GL_TEXTURE_2D
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_S gl.GL_REPEAT
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_T gl.GL_REPEAT
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MAG_FILTER gl.GL_NEAREST
-        gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MIN_FILTER gl.GL_LINEAR_MIPMAP_LINEAR
-
-        super-type.__typecall cls
-            size = (typeinit x y)
-            _handle = handle
-
-    case (cls, filedata : (Array i8))
-        local x : i32
-        local y : i32
-        local ch : i32
-        let data = 
-            stbi.load_from_memory 
-                (imply filedata pointer) as (@ u8) 
-                (countof filedata) as i32
-                &x
-                &y
-                &ch
-                4
-
-        let imagedata = 
-            Struct.__typecall (Array u8)
-                _count = (x * y * 4) # size * channels
-                _capacity = (x * y * 4)
-                _items = data
-
-        this-function cls imagedata x y
-
-    case (cls, filename : String)
-        this-function cls ('force-unwrap (io.load-file filename))
-
-    inline __drop (self)
-        gl.DeleteTextures 1 (&local (self._handle as u32))
 
 typedef ShaderProgram <:: u32
     fn compile-shader (source kind)
@@ -214,6 +161,8 @@ global sprite-ibuf : u32
 global default-shader : ShaderProgram
 global transform-loc : i32
 
+global batch : spritebatch.spritebatch
+
 fn sprite (sprite position ...)
     let quad = (va-option quad ... (ivec4 0 0 sprite.size))
     let scale = (va-option scale ... (vec2 1 1))
@@ -225,18 +174,75 @@ fn sprite (sprite position ...)
     scale    as:= vec2
     rotation as:= f32
 
-    size := (vec2 (quad.pq - quad.st)) * scale
+    spritebatch.push &batch
+        spritebatch.sprite
+            image_id = sprite.id
+            w = sprite.size.x
+            h = sprite.size.y
+            x = position.x
+            y = position.y
+            sx = scale.x
+            sy = scale.y
+            c = (cos rotation)
+            s = (sin rotation)
 
-    local vdata =
-        arrayof Vertex2D
-            typeinit position quad.sq # (vec2 0 1)
-            typeinit (position + size.x0) quad.pq # (vec2 1 1)
-            typeinit (position + size.0y) quad.st # (vec2 0 0)
-            typeinit (position + size) quad.pt # (vec2 1 0)
+fn make-texture (pixels w h userdata)
+    local handle : u32
+    gl.GenTextures 1 &handle
+    gl.BindTexture gl.GL_TEXTURE_2D handle
 
-    gl.BindTexture gl.GL_TEXTURE_2D (sprite._handle as u32)
-    gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
-    gl.DrawElements gl.GL_TRIANGLES 6 gl.GL_UNSIGNED_INT null
+    vvv bind mipmap-count
+    do
+        let dimension = (max (w as f32) (h as f32))
+        let levels = ((log2 dimension) + 1)
+        levels as i32
+
+    gl.TexStorage2D gl.GL_TEXTURE_2D mipmap-count gl.GL_SRGB8_ALPHA8 w h
+    gl.TexSubImage2D gl.GL_TEXTURE_2D 0 0 0 w h gl.GL_RGBA gl.GL_UNSIGNED_BYTE pixels
+    gl.GenerateMipmap gl.GL_TEXTURE_2D
+    gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_S gl.GL_REPEAT
+    gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_WRAP_T gl.GL_REPEAT
+    gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MAG_FILTER gl.GL_NEAREST
+    gl.TexParameteri gl.GL_TEXTURE_2D gl.GL_TEXTURE_MIN_FILTER gl.GL_LINEAR_MIPMAP_LINEAR
+
+    handle as u64
+
+fn destroy-texture (handle userdata)
+    gl.DeleteTextures 1 (&local (handle as u32))
+
+fn get-sprite-pixels (id buf expected-bytes userdata)
+    buf as:= (mutable@ u8)
+    let sdata = (common.sprites @ id) 
+    assert ((sdata.size.x * sdata.size.y * 4) == expected-bytes)
+    # TODO: memcpy this
+    for i byte in (enumerate sdata.data)
+        buf @ i = byte 
+
+fn batch-submit (sprites count texturew textureh userdata)
+    texturew as:= f32
+    textureh as:= f32
+    for i in (range count)
+        sprite := sprites @ i
+        let quad =
+            ivec4 
+                (texturew * sprite.minx) as i32
+                (textureh * sprite.miny) as i32
+                (texturew * sprite.maxx) as i32
+                (textureh * sprite.maxy) as i32
+        scale := (vec2 sprite.sx sprite.sy)
+        size := (vec2 (quad.pq - quad.st)) * scale
+        position := (vec2 sprite.x sprite.y)
+
+        local vdata =
+            arrayof Vertex2D
+                typeinit position quad.sq # (vec2 0 1)
+                typeinit (position + size.x0) quad.pq # (vec2 1 1)
+                typeinit (position + size.0y) quad.st # (vec2 0 0)
+                typeinit (position + size) quad.pt # (vec2 1 0)
+
+        gl.BindTexture gl.GL_TEXTURE_2D (sprite.texture_id as u32)
+        gl.BufferData gl.GL_ARRAY_BUFFER (sizeof vdata) &vdata gl.GL_STREAM_DRAW
+        gl.DrawElements gl.GL_TRIANGLES 6 gl.GL_UNSIGNED_INT null
 
 fn init ()
     gl.LoadGL;
@@ -290,6 +296,24 @@ fn init ()
 
     transform-loc = (gl.GetUniformLocation default-shader "transform")
 
+    assert
+        not
+            spritebatch.init &batch 
+                &local spritebatch.config
+                    pixel_stride = ((sizeof u8) * 4)  
+                    atlas_width_in_pixels = 4096
+                    atlas_height_in_pixels = 4096
+                    atlas_use_border_pixels = false # what is this?
+                    ticks_to_decay_texture = 1800
+                    lonely_buffer_count_till_flush = 0
+                    ratio_to_decay_atlas = 0
+                    ratio_to_merge_atlases = 0.25
+                    batch_callback = batch-submit
+                    get_pixels_callback = get-sprite-pixels
+                    generate_texture_callback = make-texture
+                    delete_texture_callback = destroy-texture
+                null # userdata
+
 # NOTE: maybe we don't need this once our drawing is less immediate, then we can have present clear and
 # submit drawing stuff.
 fn begin-frame ()
@@ -305,6 +329,9 @@ fn begin-frame ()
     gl.UniformMatrix4fv transform-loc 1 false (&transform as (mutable@ f32))
 
 fn present ()
+    spritebatch.tick &batch
+    # spritebatch.defrag &batch
+    spritebatch.flush &batch
     window.gl-swap-buffers;
 
 do
