@@ -233,7 +233,7 @@ fn batch-submit (sprites count texturew textureh userdata)
                 (texturew * sprite.maxx) as i32
                 (textureh * sprite.maxy) as i32
         scale := (vec2 sprite.sx sprite.sy)
-        size := (vec2 (quad.pq - quad.st)) * scale
+        size := (vec2 sprite.w sprite.h) * scale
         position := (vec2 sprite.x sprite.y)
 
         local vdata =
