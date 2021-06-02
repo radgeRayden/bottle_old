@@ -187,7 +187,6 @@ fn sprite (sprite position ...)
             s = (sin rotation)
 
 fn make-texture (pixels w h userdata)
-    print w h
     local handle : u32
     gl.GenTextures 1 &handle
     gl.BindTexture gl.GL_TEXTURE_2D handle
