@@ -7,3 +7,6 @@
 [submodule "cdeps/glfw"]
 	path = cdeps/glfw
 	url = https://github.com/glfw/glfw
+[submodule "cdeps/miniaudio"]
+	path = cdeps/miniaudio
+	url = https://github.com/mackron/miniaudio
