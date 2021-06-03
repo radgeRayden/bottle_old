@@ -96,6 +96,7 @@ libbottle_src = [
     "./cdeps/glad/src/glad.c",
     "./cdeps/stb.c",
     "./cdeps/cute_headers.c",
+    "./cdeps/miniaudio.c",
 ]
 libbottle_objs = [gen_obj_name(src) for src in libbottle_src]
 libbottle_objs_str = ""
