@@ -15,11 +15,7 @@ fn run ()
     let config = internal-state.config
 
     window.init;
-
-    # currently only the graphics module is optional
-    if config.modules.graphics
-        graphics.init;
-
+    graphics.init;
     input.init;
 
     callbacks.load;
@@ -30,13 +26,11 @@ fn run ()
         mouse.update;
         callbacks.update (time.delta-time)
 
-        if config.modules.graphics
-            graphics.begin-frame;
+        graphics.begin-frame;
 
         callbacks.draw;
 
-        if config.modules.graphics
-            graphics.present;
+        graphics.present;
 
     callbacks.quit;
 
