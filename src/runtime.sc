@@ -3,7 +3,12 @@ let config = internal-state.startup-config
 using import ..common
 
 inline lib (name)
-    load-library (.. module-dir "/../runtime/" name)
+    try
+        load-library (.. module-dir "/../runtime/" name)
+    except (ex)
+        'dump ex
+        hide-traceback;
+        error "There was a problem loading a shared library. Did you build the binary dependencies for bottle?"
 
 switch operating-system
 case 'linux
