@@ -24,10 +24,8 @@ fn run ()
         window.poll-events;
         input.update;
         mouse.update;
+
         callbacks.update (time.delta-time)
-
-        graphics.begin-frame;
-
         callbacks.draw;
 
         graphics.present;

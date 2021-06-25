@@ -292,9 +292,7 @@ fn init ()
                     delete_texture_callback = destroy-texture
                 null # userdata
 
-# NOTE: maybe we don't need this once our drawing is less immediate, then we can have present clear and
-# submit drawing stuff.
-fn begin-frame ()
+fn present ()
     let ww wh = (window.size)
     gl.Viewport 0 0 ww wh
     gl.ClearColor 0.017 0.017 0.017 1.0
@@ -305,8 +303,6 @@ fn begin-frame ()
             math.translate (vec3 -1 -1 0)
             math.ortho ww wh
     gl.UniformMatrix4fv transform-loc 1 false (&transform as (mutable@ f32))
-
-fn present ()
     spritebatch.tick &batch
     spritebatch.defrag &batch
     spritebatch.flush &batch
@@ -315,7 +311,6 @@ fn present ()
 do
     let
         init
-        begin-frame
         present
         sprite
 
