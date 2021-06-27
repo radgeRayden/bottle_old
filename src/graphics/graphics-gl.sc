@@ -23,6 +23,20 @@ let &local =
         &
             local dummy-name = source
 
+spice patch-shader (shader patch)
+    shader as:= string
+    patch as:= string
+    let match? start end = ('match? "^#version \\d\\d\\d\\n" shader)
+    if match?
+        let head = (lslice shader end)
+        let tail = (rslice shader end)
+        let result = (.. head patch tail)
+        `result
+    else
+        error "unrecognized shader input"
+
+run-stage;
+
 typedef ShaderProgram <:: u32
     fn compile-shader (source kind)
         imply kind i32
@@ -86,9 +100,14 @@ typedef ShaderProgram <:: u32
         let vsource =
             static-if ((typeof vs) == Closure)
                 static-if (constant? vs)
-                    let src = (static-compile-glsl 420 'vertex (static-typify vs))
+                    let src =
+                        patch-shader
+                            static-compile-glsl 420 'vertex (static-typify vs)
+                            "#extension GL_ARB_shader_storage_buffer_object : require\n"
                     String src (countof src)
                 else
+                    # FIXME: we need to patch the runtime shader as well. Currently not possible because
+                      I don't have a patching function that doesn't depend on libscopesrt.
                     let src = (compile-glsl 420 'vertex (typify vs))
                     String src (countof src)
             else
