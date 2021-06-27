@@ -96,7 +96,7 @@ libbottle_src = [
     "./cdeps/glad/src/glad.c",
     "./cdeps/stb.c",
     "./cdeps/cute_headers.c",
-    "./cdeps/miniaudio.c",
+    "./cdeps/miniaudio.c"
 ]
 libbottle_objs = [gen_obj_name(src) for src in libbottle_src]
 libbottle_objs_str = ""
@@ -113,7 +113,7 @@ def libbottle_windows():
         'basename': "libbottle.dll",
         'actions': [cmd],
         'targets': [libbottle_dynamic],
-        'file_dep': libbottle_objs + [glfw_dynamic],
+        'file_dep': libbottle_objs + [glfw_dynamic] + ["./cdeps/sprite_userdata.h"],
     }
 
 def libbottle_linux():

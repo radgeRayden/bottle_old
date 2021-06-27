@@ -204,6 +204,9 @@ fn sprite (sprite position ...)
             sy = scale.y
             c = (cos rotation)
             s = (sin rotation)
+            udata = 
+                typeinit 
+                    quad = (arrayof i32 quad.s quad.t quad.p quad.q)
 
 fn make-texture (pixels w h userdata)
     local handle : u32
@@ -244,14 +247,18 @@ fn batch-submit (sprites count texturew textureh userdata)
     'clear batch-mesh
     for i in (range count)
         sprite := sprites @ i
+        let uquad = sprite.udata.quad
         let quad =
-            ivec4 
-                (texturew * sprite.minx) as i32
-                (textureh * sprite.miny) as i32
-                (texturew * sprite.maxx) as i32
-                (textureh * sprite.maxy) as i32
+            +
+                ivec4 
+                    (texturew * sprite.minx) as i32
+                    # we need to convert from top down to bottom up, hence swapping min for max.
+                    (textureh * sprite.maxy) as i32
+                    0
+                    0
+                ivec4 (unpack uquad)
         scale := (vec2 sprite.sx sprite.sy)
-        size := (vec2 sprite.w sprite.h) * scale
+        size := (vec2 (quad.pq - quad.st)) * scale
         position := (vec2 sprite.x sprite.y)
 
         local vdata =
