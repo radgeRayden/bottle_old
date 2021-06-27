@@ -8,10 +8,12 @@ using import struct
 
 using import ..common
 import .internal-state
-let glfw = (import .FFI.glfw)
-let wgpu = (import .FFI.wgpu)
+from internal-state let window startup-config config
 
-from internal-state let window config
+let glfw = (import .FFI.glfw)
+
+let webgpu? = (startup-config.graphics.backend == GraphicsBackend.WebGPU)
+run-stage;
 
 # This helper queries internal window handles used by the OS (as opposed to the GLFW window handle).
 # These are used when initializing certain graphics APIs that own the window surface.
@@ -37,16 +39,22 @@ fn get-native-window-info ()
 
 # Must be called to generate a WebGPU compatible surface to be handed off to the graphics module if
 # using that backend.
-fn create-wgpu-surface ()
-    static-match operating-system
-    case 'linux
-        let x11-display x11-window = (get-native-window-info)
-        wgpu.create_surface_from_xlib x11-display x11-window
-    case 'windows
-        let hinstance hwnd = (get-native-window-info)
-        wgpu.create_surface_from_windows_hwnd hinstance hwnd
-    default
-        error "OS not supported"
+let create-wgpu-surface =
+    sugar-if webgpu?
+        fn create-wgpu-surface ()
+            let wgpu = (import .FFI.wgpu)
+            static-match operating-system
+            case 'linux
+                let x11-display x11-window = (get-native-window-info)
+                wgpu.create_surface_from_xlib x11-display x11-window
+            case 'windows
+                let hinstance hwnd = (get-native-window-info)
+                wgpu.create_surface_from_windows_hwnd hinstance hwnd
+            default
+                error "OS not supported"
+    else
+        inline (...)
+            ;
 
 fn position ()
     local x : i32
