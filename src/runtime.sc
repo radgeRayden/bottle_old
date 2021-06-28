@@ -5,10 +5,16 @@ using import ..common
 inline lib (name)
     try
         load-library (.. module-dir "/../runtime/" name)
-    except (ex)
-        'dump ex
-        hide-traceback;
-        error "There was a problem loading a shared library. Did you build the binary dependencies for bottle?"
+    else
+        try
+            load-library name
+        except (ex)
+            'dump ex
+            hide-traceback;
+            error 
+                .. "There was a problem loading a shared library : "
+                    name
+                    ". Did you build or install the binary dependencies for bottle?"
 
 switch operating-system
 case 'linux
