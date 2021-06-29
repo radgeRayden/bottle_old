@@ -23,9 +23,8 @@ fold (scope = (Scope)) for k v in header.enum
             'set-symbol T (Symbol (rslice sname end)) v
             'set-symbol T '__typecall enum-constructor
 
-    # we already know all enums here shoult match WGPU prefix.
+    # we already know all enums here should match WGPU prefix.
     let name = (rslice (k as Symbol as string) (countof "WGPU"))
     'bind scope (Symbol name) v
-
 
 .. wgpu-enum wgpu-extern wgpu-typedef wgpu-define

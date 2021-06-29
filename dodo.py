@@ -8,7 +8,6 @@ cc = ""
 cxx = ""
 include_dirs = [
     "./cdeps/glad/include",
-    "./cdeps/glfw/include",
 ]
 iflags = ""
 for idir in include_dirs:
@@ -18,15 +17,10 @@ cflags = f"-Wall -O2 -fPIC {iflags}"
 cxxflags = ""
 exename = ""
 
-glfw_dir = "./cdeps/glfw"
-glfw_build = f"{glfw_dir}/build"
-glfw_static = f"{glfw_build}/src/libglfw3.a"
-glfw_dynamic = ""
-
 libbottle_dynamic = ""
 
 lflags_common = "-lpthread -lm"
-lflags_aot = f"-L. -l:{glfw_static}"
+# lflags_aot = f"-L. {glfw_static}"
 
 operating_system = platform.system()
 is_windows = operating_system.startswith("MINGW")
@@ -38,7 +32,6 @@ if is_windows:
     lflags_common = lflags_common + " -lgdi32 -lwinmm -lole32 -luuid"
     exename = "game.exe"
 
-    glfw_dynamic = f"{glfw_build}/src/glfw3.dll"
     libbottle_dynamic = "./cdeps/libbottle.dll"
 
 elif "Linux" in operating_system:
@@ -49,12 +42,11 @@ elif "Linux" in operating_system:
     lflags_common = lflags_common + " -ldl -lX11 -lasound"
     exename = "game"
 
-    glfw_dynamic = f"{glfw_build}/src/libglfw.so"
     libbottle_dynamic = "./cdeps/libbottle.so"
 else:
     raise UnsupportedPlatform
 def module_dep(name):
-    return f"./.git/modules/cdeps/{name}/HEAD"
+    return f"./cdeps/{name}/commit.txt"
 
 # routines for handling of obj files from C/C++, similar to what make offers.
 def gen_obj_name(src):
@@ -92,6 +84,13 @@ def wrap_cmake(basedir, options):
 from doit.tools import LongRunning
 from doit.tools import run_once
 
+# modules where I copied only important files necessary for inclusion. GLFW doesn't appear here because I 
+# use the source zip for the version 3.3.4.
+modules = [
+    "cute_headers",
+    "miniaudio",
+    "stb",
+]
 libbottle_src = [
     "./cdeps/glad/src/glad.c",
     "./cdeps/stb.c",
@@ -113,7 +112,7 @@ def libbottle_windows():
         'basename': "libbottle.dll",
         'actions': [cmd],
         'targets': [libbottle_dynamic],
-        'file_dep': libbottle_objs + [glfw_dynamic] + ["./cdeps/sprite_userdata.h"],
+        'file_dep': libbottle_objs + ["./cdeps/sprite_userdata.h"] + [module_dep(mod) for mod in modules],
     }
 
 def libbottle_linux():
@@ -126,7 +125,7 @@ def libbottle_linux():
         'basename': "libbottle.so",
         'actions': [cmd],
         'targets': [libbottle_dynamic],
-        'file_dep': libbottle_objs,
+        'file_dep': libbottle_objs + ["./cdeps/sprite_userdata.h"] + [module_dep(mod) for mod in modules],
     }
 
 def task_libbottle():
@@ -137,16 +136,7 @@ def task_libbottle():
     else:
         raise UnsupportedPlatform
 
-def task_glfw():
-    shared_options = "-DGLFW_BUILD_EXAMPLES=off -DGLFW_BUILD_TESTS=off -DGLFW_BUILD_DOCS=off -DBUILD_SHARED_LIBS=on"
-    static_options = "-DGLFW_BUILD_EXAMPLES=off -DGLFW_BUILD_TESTS=off -DGLFW_BUILD_DOCS=off -DBUILD_SHARED_LIBS=off"
-    make_cmd = f"{make} -C {glfw_build}"
-    return {
-        'actions': [wrap_cmake(glfw_build, shared_options), make_cmd, wrap_cmake(glfw_build, static_options), make_cmd],
-        'targets': [glfw_static, glfw_dynamic],
-    }
-
-runtime_libs = [libbottle_dynamic, glfw_dynamic]
+runtime_libs = [libbottle_dynamic]
 runtime_targets = [f"./runtime/{os.path.split(lib)[1]}" for lib in runtime_libs]
 def task_runtime():
     def mkcopy(lib):
