@@ -144,7 +144,6 @@ def task_glfw():
     return {
         'actions': [wrap_cmake(glfw_build, shared_options), make_cmd, wrap_cmake(glfw_build, static_options), make_cmd],
         'targets': [glfw_static, glfw_dynamic],
-        'file_dep': [module_dep("glfw")]
     }
 
 runtime_libs = [libbottle_dynamic, glfw_dynamic]
@@ -157,4 +156,12 @@ def task_runtime():
         'actions': ["mkdir -p ./runtime"] + copy_libs,
         'file_dep': runtime_libs,
         'targets': runtime_targets
+    }
+
+def task_fclean():
+    def mkdelete(artifact):
+        return f"rm -f {artifact}"
+    return {
+        'actions': [mkdelete(artifact) for artifact in runtime_libs + runtime_targets + libbottle_objs],
+        'uptodate': [False]
     }
