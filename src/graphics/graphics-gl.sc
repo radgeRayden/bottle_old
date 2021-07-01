@@ -254,8 +254,8 @@ fn batch-submit (sprites count texturew textureh userdata)
                     (texturew * sprite.minx) as i32
                     # we need to convert from top down to bottom up, hence swapping min for max.
                     (textureh * sprite.maxy) as i32
-                    0
-                    0
+                    (texturew * sprite.minx) as i32
+                    (textureh * sprite.maxy) as i32
                 ivec4 (unpack uquad)
         scale := (vec2 sprite.sx sprite.sy)
         size := (vec2 (quad.pq - quad.st)) * scale
