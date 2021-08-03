@@ -21,7 +21,7 @@ case 'linux
     lib "libbottle.so"
     lib "libglfw.so"
     if (config.graphics.backend == GraphicsBackend.WebGPU)
-        lib "wgpu_native.so"
+        lib "libwgpu_native.so"
 case 'windows
     lib "libbottle.dll"
     lib "glfw3.dll"
